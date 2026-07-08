@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roller Score</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="manifest" href="app.webmanifest" />
+    <meta name="theme-color" content="#111827" />
+  </head>
+
+  <body>
+    <main class="app">
+      <header class="app-header">
+        <div>
+          <h1>🛼 Roller Score</h1>
+          <p>Artistic Roller Skating</p>
+        </div>
+        <button class="icon-button" type="button">☰</button>
+      </header>
+
+      <section id="home-screen" class="screen active">
+        <section class="card">
+          <p class="label">GARA PROGRAMMATA</p>
+          <h2 id="home-race-name">---</h2>
+          <p id="home-race-info" class="muted">---</p>
+
+          <div class="athlete-box athlete-box-main">
+            <p id="home-favorite-athlete">⭐ La nostra atleta</p>
+
+            <strong id="home-favorite-live-status" class="favorite-live-status">
+              ---
+            </strong>
+
+            <strong id="home-favorite-position" class="favorite-position">
+              -- atleta di --
+            </strong>
+
+            <div class="info-table">
+              <div class="info-row">
+                <span>Numero entrata</span>
+                <strong id="home-favorite-entry-number">--</strong>
+              </div>
+              <div class="info-row">
+                <span>Inizio categoria</span>
+                <strong id="home-category-start-time">--:--</strong>
+              </div>
+              <div class="info-row">
+                <span>Ingresso stimato</span>
+                <strong id="home-favorite-estimated-time">--:--</strong>
+              </div>
+            </div>
+          </div>
+
+          <button id="go-race-dashboard" class="primary-button" type="button">
+            📋 Apri gara
+          </button>
+
+          <button
+            id="go-score-entry-home"
+            class="secondary-button"
+            type="button"
+          >
+            ▶ Inizia gara
+          </button>
+        </section>
+
+        <button id="go-new-race" class="new-race-button" type="button">
+          ＋ Nuova gara
+        </button>
+      </section>
+
+      <section id="race-dashboard-screen" class="screen">
+        <section class="card">
+          <p class="label">DASHBOARD GARA</p>
+          <h2 id="dashboard-race-name">---</h2>
+          <p id="dashboard-race-info" class="muted">---</p>
+
+          <div class="status-box">
+            <span>Stato gara</span>
+            <strong>🟢 Preparata</strong>
+          </div>
+
+          <div class="progress-box">
+            <div class="progress-header">
+              <span>Avanzamento</span>
+              <strong id="dashboard-progress-text">0 / 0</strong>
+            </div>
+            <div class="progress-bar">
+              <div id="dashboard-progress-fill" class="progress-fill"></div>
+            </div>
+          </div>
+
+          <div class="summary-grid">
+            <div>
+              <span>Atlete</span
+              ><strong id="dashboard-athletes-count">0</strong>
+            </div>
+            <div>
+              <span>Completate</span
+              ><strong id="dashboard-completed-count">0</strong>
+            </div>
+            <div>
+              <span>Da fare</span><strong id="dashboard-todo-count">0</strong>
+            </div>
+            <div>
+              <span>Da completare</span
+              ><strong id="dashboard-missing-count">0</strong>
+            </div>
+          </div>
+
+          <div class="athlete-box athlete-box-main">
+            <p>⭐ La nostra atleta</p>
+            <strong id="dashboard-favorite-position" class="favorite-position">
+              -- atleta di --
+            </strong>
+
+            <div class="info-table">
+              <div class="info-row">
+                <span>Numero entrata</span>
+                <strong id="dashboard-favorite-entry-number">--</strong>
+              </div>
+              <div class="info-row">
+                <span>Inizio categoria</span>
+                <strong id="dashboard-category-start-time">--:--</strong>
+              </div>
+              <div class="info-row">
+                <span>Ingresso stimato</span>
+                <strong id="dashboard-favorite-estimated-time">--:--</strong>
+              </div>
+            </div>
+          </div>
+
+          <button id="go-athlete-list" class="primary-button" type="button">
+            📋 Elenco atlete
+          </button>
+
+          <button
+            id="go-score-entry-dashboard"
+            class="secondary-button"
+            type="button"
+          >
+            ▶ Inizia gara
+          </button>
+
+          <button class="ghost-button" type="button">⚙ Modifica gara</button>
+
+          <button id="back-home-2" class="ghost-button" type="button">
+            ← Torna alla Home
+          </button>
+        </section>
+      </section>
+
+      <section id="athlete-list-screen" class="screen">
+        <section class="card">
+          <p class="label">ELENCO ATLETE</p>
+          <h2 id="athlete-list-title">---</h2>
+          <p id="athlete-list-subtitle" class="muted">---</p>
+
+          <div class="search-box">
+            <input type="text" placeholder="Cerca atleta o società" />
+          </div>
+
+          <div id="athlete-list-container" class="athlete-list"></div>
+
+          <div class="legend-box">
+            <span>✔ completata</span>
+            <span>▶ in corso</span>
+            <span>○ da fare</span>
+            <span>! da completare</span>
+          </div>
+
+          <button id="back-dashboard-1" class="ghost-button" type="button">
+            ← Torna alla gara
+          </button>
+        </section>
+      </section>
+
+      <section id="score-entry-screen" class="screen">
+        <section class="card">
+          <p class="label">INSERIMENTO PUNTEGGI</p>
+
+          <div class="score-athlete-header">
+            <div class="score-header-top">
+              <span id="score-entry-order" class="race-order"
+                >-- atleta di --</span
+              >
+              <div class="score-status-wrap">
+                <span id="score-entry-status-badge" class="score-status-badge"
+                  >○</span
+                >
+                <span id="score-entry-status-label" class="score-status-label"
+                  >Da fare</span
+                >
+              </div>
+            </div>
+
+            <h2 id="score-entry-athlete-name">---</h2>
+            <p id="score-entry-athlete-club" class="muted">---</p>
+            <p id="score-entry-notes-count" class="notes-active">
+              📝 Nessuna nota
+            </p>
+          </div>
+
+          <button
+            id="open-athlete-sheet"
+            class="ghost-button sheet-button"
+            type="button"
+          >
+            📄 Scheda atleta
+          </button>
+
+          <div class="score-nav-grid">
+            <button id="previous-athlete" class="ghost-button" type="button">
+              ← Precedente
+            </button>
+            <button id="next-athlete" class="ghost-button" type="button">
+              Successiva →
+            </button>
+          </div>
+
+          <div class="score-block">
+            <h3>Tecnico</h3>
+            <div class="score-grid">
+              <input
+                data-score-technical
+                type="text"
+                inputmode="numeric"
+                maxlength="2"
+                pattern="[0-9]*"
+                placeholder="55"
+              />
+              <input
+                data-score-technical
+                type="text"
+                inputmode="numeric"
+                maxlength="2"
+                pattern="[0-9]*"
+                placeholder="56"
+              />
+              <input
+                data-score-technical
+                type="text"
+                inputmode="numeric"
+                maxlength="2"
+                pattern="[0-9]*"
+                placeholder="57"
+              />
+            </div>
+          </div>
+
+          <div class="score-block">
+            <h3>Artistico</h3>
+            <div class="score-grid">
+              <input
+                data-score-artistic
+                type="text"
+                inputmode="numeric"
+                maxlength="2"
+                pattern="[0-9]*"
+                placeholder="51"
+              />
+              <input
+                data-score-artistic
+                type="text"
+                inputmode="numeric"
+                maxlength="2"
+                pattern="[0-9]*"
+                placeholder="52"
+              />
+              <input
+                data-score-artistic
+                type="text"
+                inputmode="numeric"
+                maxlength="2"
+                pattern="[0-9]*"
+                placeholder="53"
+              />
+            </div>
+          </div>
+
+          <label class="form-field">
+            Penalità
+            <input
+              id="score-penalty"
+              type="number"
+              inputmode="decimal"
+              placeholder="Lascia vuoto se non presente"
+            />
+          </label>
+
+          <label class="form-field">
+            Nota prestazione
+            <textarea
+              id="score-note"
+              placeholder="Es. bella prova, ottime trottole..."
+            ></textarea>
+          </label>
+
+          <button
+            id="save-and-next-athlete"
+            class="primary-button"
+            type="button"
+          >
+            💾 Salva e prossima
+          </button>
+
+          <button id="back-athlete-list-1" class="ghost-button" type="button">
+            ← Torna all'elenco
+          </button>
+        </section>
+      </section>
+
+      <section id="new-race-screen" class="screen">
+        <section class="card">
+          <p class="label">NUOVA GARA</p>
+          <h2>Come vuoi crearla?</h2>
+          <p class="muted">
+            Puoi acquisire un ordine di entrata oppure inserirla manualmente.
+          </p>
+
+          <button id="go-acquire-race" class="primary-button" type="button">
+            📷 Acquisisci gara
+          </button>
+
+          <button id="go-manual-race" class="secondary-button" type="button">
+            ✍ Inserisci manualmente
+          </button>
+
+          <button id="back-home-1" class="ghost-button" type="button">
+            ← Torna alla Home
+          </button>
+        </section>
+      </section>
+
+      <section id="acquire-race-screen" class="screen">
+        <section class="card">
+          <p class="label">ACQUISISCI GARA</p>
+          <h2>Foto, screenshot o PDF</h2>
+          <p class="muted">
+            Questa funzione verrà collegata al motore OCR nelle prossime
+            versioni.
+          </p>
+
+          <button class="primary-button" type="button">
+            📷 Scegli immagine
+          </button>
+          <button class="secondary-button" type="button">📄 Importa PDF</button>
+
+          <button id="back-new-race-1" class="ghost-button" type="button">
+            ← Torna a Nuova Gara
+          </button>
+        </section>
+      </section>
+
+      <section id="manual-race-screen" class="screen">
+        <section class="card">
+          <p class="label">INSERIMENTO MANUALE</p>
+          <h2>Crea gara</h2>
+          <p class="muted">Compila i dati principali della competizione.</p>
+
+          <form class="race-form">
+            <label>
+              Nome gara
+              <input type="text" placeholder="Summer Trophy" />
+            </label>
+
+            <label>
+              Data
+              <input type="date" />
+            </label>
+
+            <label>
+              Località
+              <input type="text" placeholder="Misano Adriatico" />
+            </label>
+
+            <label>
+              Federazione
+              <select>
+                <option>AICS</option>
+                <option>FISR</option>
+                <option>PGS</option>
+                <option>World Skate</option>
+                <option>Altro</option>
+              </select>
+            </label>
+
+            <label>
+              Disciplina
+              <select>
+                <option>Libero</option>
+                <option>Solo Dance</option>
+                <option>Coppia Artistico</option>
+                <option>Coppia Danza</option>
+                <option>Gruppi / Quartetti</option>
+              </select>
+            </label>
+
+            <label>
+              Categoria
+              <input type="text" placeholder="Junior Basic" />
+            </label>
+
+            <div class="form-grid">
+              <label>
+                Ordine atleta
+                <input type="number" placeholder="12" />
+              </label>
+
+              <label>
+                Totale
+                <input type="number" placeholder="18" />
+              </label>
+            </div>
+
+            <div class="form-grid">
+              <label>
+                Inizio gara
+                <input type="time" />
+              </label>
+
+              <label>
+                Min/esibizione
+                <input type="number" value="4" />
+              </label>
+            </div>
+
+            <button class="primary-button" type="button">💾 Crea gara</button>
+
+            <button id="back-new-race-2" class="ghost-button" type="button">
+              ← Torna a Nuova Gara
+            </button>
+          </form>
+        </section>
+      </section>
+    </main>
+
+    <div id="athlete-sheet" class="bottom-sheet">
+      <div class="sheet-content">
+        <div class="sheet-handle"></div>
+
+        <p class="label">SCHEDA ATLETA</p>
+        <h2 id="sheet-athlete-name">---</h2>
+        <p id="sheet-athlete-club" class="muted">---</p>
+
+        <div class="sheet-section">
+          <h3>Note precedenti</h3>
+          <div id="sheet-athlete-notes"></div>
+        </div>
+
+        <div class="sheet-section">
+          <h3>Ultime gare</h3>
+          <div id="sheet-athlete-results"></div>
+        </div>
+
+        <button id="close-athlete-sheet" class="primary-button" type="button">
+          Chiudi
+        </button>
+      </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
