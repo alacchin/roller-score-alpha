@@ -1,22 +1,24 @@
-const CACHE_NAME = "roller-score-v1";
+const CACHE_NAME = "roller-score-v2";
 
 const FILES_TO_CACHE = [
-  "/",
-  "/index.html",
-  "/styles.css",
-  "/app.js",
-  "/config.js",
-  "/dom.js",
-  "/models.js",
-  "/navigation.js",
-  "/raceController.js",
-  "/renderer.js",
-  "/scoreController.js",
-  "/state.js",
-  "/storage.js",
-  "/ui.js",
-  "/athleteSheet.js",
-  "/manifest.json",
+  "./",
+  "./index.html",
+  "./styles.css",
+  "./app.js",
+  "./config.js",
+  "./dom.js",
+  "./models.js",
+  "./navigation.js",
+  "./raceController.js",
+  "./renderer.js",
+  "./scoreController.js",
+  "./state.js",
+  "./storage.js",
+  "./ui.js",
+  "./athleteSheet.js",
+  "./app.webmanifest",
+  "./icon-192.png",
+  "./icon-512.png"
 ];
 
 self.addEventListener("install", (event) => {
@@ -25,10 +27,20 @@ self.addEventListener("install", (event) => {
   );
 });
 
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter((key) => key !== CACHE_NAME)
+          .map((key) => caches.delete(key))
+      )
+    )
+  );
+});
+
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches
-      .match(event.request)
-      .then((response) => response || fetch(event.request))
+    caches.match(event.request).then((response) => response || fetch(event.request))
   );
 });
