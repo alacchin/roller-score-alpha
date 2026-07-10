@@ -1,74 +1,234 @@
-// ======================================
-// MODELS.JS
-// Modelli dati principali Roller Score
-// Versione: v0.0.5
-// ======================================
+export function createId(prefix = "item") {
+  if (globalThis.crypto?.randomUUID) {
+    return `${prefix}-${globalThis.crypto.randomUUID()}`;
+  }
 
-import { SCORE_STATUS } from "./config.js";
+  return `${prefix}-${Date.now()}-${Math.random()
+    .toString(16)
+    .slice(2)}`;
+}
+
+/*
+==================================================
+ANAGRAFICA ATLETA
+==================================================
+
+Il numero di entrata NON viene salvato qui.
+
+L'anagrafica contiene solamente i dati permanenti
+dell'atleta, riutilizzabili nelle gare successive.
+*/
 
 export function createAthlete({
-  id,
-  order,
+  id = createId("athlete"),
   name,
-  club,
-  isFavorite = false,
+  club = "",
   notes = [],
-  previousResults = [],
-  status = SCORE_STATUS.TODO,
-  scores = null,
+  previousResults = []
 }) {
+  const now = new Date().toISOString();
+
   return {
     id,
-    order,
-    name,
-    club,
-    isFavorite,
-    notes,
-    previousResults,
-    status,
-    scores,
+    name: String(name || "").trim(),
+    club: String(club || "").trim(),
+    notes: Array.isArray(notes) ? notes : [],
+    previousResults: Array.isArray(previousResults)
+      ? previousResults
+      : [],
+    createdAt: now,
+    updatedAt: now
   };
 }
 
-export function createRace({
-  id,
+/*
+==================================================
+PARTECIPAZIONE DELL'ATLETA ALLA GARA
+==================================================
+
+Qui vengono salvati i dati validi solo per quella gara:
+
+- numero di entrata
+- posizione
+- atleta preferita
+- stato
+- punteggi
+*/
+
+export function createParticipant({
+  id = createId("participant"),
+  athleteId,
   name,
+  club = "",
+  entryNumber,
+  isFavorite = false,
+  status = "todo",
+  notes = [],
+  previousResults = [],
+  scores = null
+}) {
+  const normalizedEntryNumber = Number(entryNumber);
+
+  return {
+    id,
+    athleteId,
+    name: String(name || "").trim(),
+    club: String(club || "").trim(),
+
+    entryNumber: normalizedEntryNumber,
+    order: normalizedEntryNumber,
+
+    isFavorite: Boolean(isFavorite),
+    status,
+
+    notes: Array.isArray(notes) ? notes : [],
+    previousResults: Array.isArray(previousResults)
+      ? previousResults
+      : [],
+
+    scores
+  };
+}
+
+/*
+==================================================
+GARA
+==================================================
+*/
+
+export function createRace({
+  id = createId("race"),
+  name,
+  date,
+  location = "",
   federation,
   discipline,
   category,
-  location,
-  date,
   startTime,
-  minutesPerAthlete,
-  athletes = [],
+  minutesPerAthlete = 4,
+  participants = []
 }) {
+  const now = new Date().toISOString();
+
+  const sortedParticipants = [...participants].sort(
+    (firstParticipant, secondParticipant) =>
+      Number(firstParticipant.entryNumber) -
+      Number(secondParticipant.entryNumber)
+  );
+
   return {
     id,
-    name,
+
+    name: String(name || "").trim(),
+    date,
+    location: String(location || "").trim(),
+
     federation,
     discipline,
-    category,
-    location,
-    date,
+    category: String(category || "").trim(),
+
     startTime,
-    minutesPerAthlete,
-    athletes,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    minutesPerAthlete: Number(minutesPerAthlete),
+
+    participants: sortedParticipants,
+
+    createdAt: now,
+    updatedAt: now
   };
 }
+
+/*
+==================================================
+PUNTEGGIO
+==================================================
+*/
 
 export function createScore({
   technical = [],
   artistic = [],
   penalty = null,
-  note = "",
+  note = ""
 }) {
   return {
-    technical,
-    artistic,
-    penalty,
-    note,
-    savedAt: new Date().toISOString(),
+    technical: Array.isArray(technical) ? technical : [],
+    artistic: Array.isArray(artistic) ? artistic : [],
+    penalty:
+      penalty === null || penalty === ""
+        ? null
+        : Number(penalty),
+    note: String(note || "").trim(),
+    savedAt: new Date().toISOString()
+  };
+}
+
+/*
+==================================================
+FUNZIONI DI SUPPORTO
+==================================================
+*/
+
+export function sortParticipantsByEntryNumber(participants = []) {
+  return [...participants].sort(
+    (firstParticipant, secondParticipant) =>
+      Number(firstParticipant.entryNumber) -
+      Number(secondParticipant.entryNumber)
+  );
+}
+
+export function normalizeParticipant(participant) {
+  const entryNumber = Number(
+    participant.entryNumber ?? participant.order
+  );
+
+  return {
+    ...participant,
+    entryNumber,
+    order: entryNumber,
+    isFavorite: Boolean(participant.isFavorite),
+    notes: Array.isArray(participant.notes)
+      ? participant.notes
+      : [],
+    previousResults: Array.isArray(
+      participant.previousResults
+    )
+      ? participant.previousResults
+      : [],
+    status: participant.status || "todo",
+    scores: participant.scores || null
+  };
+}
+
+export function normalizeRace(race) {
+  const participants =
+    race.participants || race.athletes || [];
+
+  return {
+    ...race,
+    minutesPerAthlete: Number(
+      race.minutesPerAthlete || 4
+    ),
+    participants: sortParticipantsByEntryNumber(
+      participants.map(normalizeParticipant)
+    ),
+    updatedAt:
+      race.updatedAt ||
+      race.createdAt ||
+      new Date().toISOString()
+  };
+}
+
+export function normalizeAthlete(athlete) {
+  return {
+    ...athlete,
+    name: String(athlete.name || "").trim(),
+    club: String(athlete.club || "").trim(),
+    notes: Array.isArray(athlete.notes)
+      ? athlete.notes
+      : [],
+    previousResults: Array.isArray(
+      athlete.previousResults
+    )
+      ? athlete.previousResults
+      : []
   };
 }

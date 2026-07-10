@@ -1,14 +1,8 @@
-// ======================================
-// ROLLER SCORE - APP.JS
-// Bootstrap principale dell'app
-// Versione: Alpha 0.0.6
-// ======================================
-
-import { initNavigation } from "./navigation.js";
-import { initAthleteSheet } from "./athleteSheet.js";
-
-import { DEFAULT_RACE_ID, SCORE_STATUS } from "./config.js";
-import { createAthlete, createRace, createScore } from "./models.js";
+import {
+  createAthlete,
+  createParticipant,
+  createRace
+} from "./models.js";
 
 import {
   getRaces,
@@ -17,241 +11,1077 @@ import {
   saveAthletes,
   getSettings,
   getActiveRaceId,
-  setActiveRaceId,
+  setActiveRaceId
 } from "./storage.js";
 
-import { setInitialState, appState } from "./state.js";
-import { render } from "./renderer.js";
+import {
+  appState,
+  setInitialState,
+  getCurrentRace,
+  setCurrentRaceId,
+  addRaceToState,
+  addAthleteToState,
+  findAthleteInState,
+  addDraftParticipant,
+  removeDraftParticipant,
+  clearDraftParticipants,
+  getDraftParticipants
+} from "./state.js";
+
+import {
+  initNavigation,
+  showScreen
+} from "./navigation.js";
 
 import {
   startRace,
-  selectAthleteById,
-  goToPreviousAthlete,
-  goToNextAthlete,
+  selectParticipantById,
+  goToPreviousParticipant,
+  goToNextParticipant
 } from "./raceController.js";
 
-import { saveCurrentScore } from "./scoreController.js";
+import {
+  saveCurrentScore
+} from "./scoreController.js";
 
-// ======================================
-// AVVIO APP
-// ======================================
+import {
+  initAthleteSheet
+} from "./athleteSheet.js";
 
-initDemoDataIfNeeded();
+import {
+  render
+} from "./renderer.js";
+
+/*
+==================================================
+AVVIO APP
+==================================================
+*/
+
 initializeApp();
-
-// ======================================
-// INIZIALIZZAZIONE
-// ======================================
 
 function initializeApp() {
   const races = getRaces();
   const athletes = getAthletes();
   const settings = getSettings();
 
-  const activeRaceId = getActiveRaceId() || DEFAULT_RACE_ID;
-  const currentRace =
-    races.find((race) => race.id === activeRaceId) || races[0] || null;
+  const savedActiveRaceId =
+    getActiveRaceId();
 
-  const currentRaceId = currentRace?.id || null;
-
-  if (currentRaceId) {
-    setActiveRaceId(currentRaceId);
-  }
+  const currentRaceId =
+    races.some(
+      (race) =>
+        race.id ===
+        savedActiveRaceId
+    )
+      ? savedActiveRaceId
+      : races[0]?.id || null;
 
   setInitialState({
     races,
     athletes,
     settings,
-    currentRaceId,
+    currentRaceId
   });
+
+  if (currentRaceId) {
+    setActiveRaceId(
+      currentRaceId
+    );
+  }
 
   initNavigation();
   initAthleteSheet();
   initAppEvents();
 
+  populateAthleteArchive();
+  renderDraftParticipants();
   render();
 }
 
-// ======================================
-// EVENTI APP
-// ======================================
+/*
+==================================================
+COLLEGAMENTO EVENTI
+==================================================
+*/
 
 function initAppEvents() {
-  connectStartRaceButtons();
+  connectRaceButtons();
+  connectScoreButtons();
   connectAthleteList();
-  connectScoreNavigationButtons();
-  connectSaveScoreButton();
+  connectRaceForm();
+  connectParticipantForm();
+  connectAthleteSearch();
+  connectAthleteArchiveSelection();
 }
 
-function connectStartRaceButtons() {
-  const startButtons = [
-    document.getElementById("go-score-entry-home"),
-    document.getElementById("go-score-entry-dashboard"),
-  ];
+/*
+==================================================
+PULSANTI GARA
+==================================================
+*/
 
-  startButtons.forEach((button) => {
-    if (!button) return;
+function connectRaceButtons() {
+  const openRaceButton =
+    document.getElementById(
+      "go-race-dashboard"
+    );
 
-    button.addEventListener("click", () => {
-      startRace();
-    });
-  });
+  const startFromHomeButton =
+    document.getElementById(
+      "go-score-entry-home"
+    );
+
+  const startFromDashboardButton =
+    document.getElementById(
+      "go-score-entry-dashboard"
+    );
+
+  const newRaceButton =
+    document.getElementById(
+      "go-new-race"
+    );
+
+  if (openRaceButton) {
+    openRaceButton.addEventListener(
+      "click",
+      () => {
+        if (!getCurrentRace()) {
+          showScreen(
+            "new-race-screen"
+          );
+
+          return;
+        }
+
+        render();
+
+        showScreen(
+          "race-dashboard-screen"
+        );
+      }
+    );
+  }
+
+  if (startFromHomeButton) {
+    startFromHomeButton.addEventListener(
+      "click",
+      () => {
+        startRace();
+      }
+    );
+  }
+
+  if (startFromDashboardButton) {
+    startFromDashboardButton.addEventListener(
+      "click",
+      () => {
+        startRace();
+      }
+    );
+  }
+
+  if (newRaceButton) {
+    newRaceButton.addEventListener(
+      "click",
+      () => {
+        resetRaceForm();
+      }
+    );
+  }
 }
 
-function connectAthleteList() {
-  const athleteList = document.getElementById("athlete-list-container");
+/*
+==================================================
+PULSANTI INSERIMENTO PUNTEGGI
+==================================================
+*/
 
-  if (!athleteList) return;
+function connectScoreButtons() {
+  const previousButton =
+    document.getElementById(
+      "previous-athlete"
+    );
 
-  athleteList.addEventListener("click", (event) => {
-    const row = event.target.closest("[data-athlete-id]");
+  const nextButton =
+    document.getElementById(
+      "next-athlete"
+    );
 
-    if (!row) return;
-
-    selectAthleteById(row.dataset.athleteId);
-  });
-}
-
-function connectScoreNavigationButtons() {
-  const previousButton = document.getElementById("previous-athlete");
-  const nextButton = document.getElementById("next-athlete");
+  const saveButton =
+    document.getElementById(
+      "save-and-next-athlete"
+    );
 
   if (previousButton) {
-    previousButton.addEventListener("click", () => {
-      goToPreviousAthlete();
-    });
+    previousButton.addEventListener(
+      "click",
+      () => {
+        goToPreviousParticipant();
+      }
+    );
   }
 
   if (nextButton) {
-    nextButton.addEventListener("click", () => {
-      goToNextAthlete();
-    });
+    nextButton.addEventListener(
+      "click",
+      () => {
+        goToNextParticipant();
+      }
+    );
+  }
+
+  if (saveButton) {
+    saveButton.addEventListener(
+      "click",
+      () => {
+        saveCurrentScore();
+      }
+    );
   }
 }
 
-function connectSaveScoreButton() {
-  const saveButton = document.getElementById("save-and-next-athlete");
+/*
+==================================================
+ELENCO ATLETE DELLA GARA
+==================================================
+*/
 
-  if (!saveButton) return;
+function connectAthleteList() {
+  const athleteList =
+    document.getElementById(
+      "athlete-list-container"
+    );
 
-  saveButton.addEventListener("click", () => {
-    saveCurrentScore();
-  });
-}
-
-// ======================================
-// DATI DEMO INIZIALI
-// ======================================
-
-function initDemoDataIfNeeded() {
-  const existingRaces = getRaces();
-
-  if (existingRaces.length > 0) {
+  if (!athleteList) {
     return;
   }
 
-  const athletes = [
-    createAthlete({
-      id: "athlete-001",
-      order: 10,
-      name: "Giulia Bianchi",
-      club: "Skating Club Verona",
-      status: SCORE_STATUS.COMPLETED,
-      notes: [],
-      scores: createScore({
-        technical: [55, 56, 57],
-        artistic: [54, 55, 56],
-        penalty: null,
-        note: "Prova pulita",
-      }),
-    }),
+  athleteList.addEventListener(
+    "click",
+    (event) => {
+      const athleteRow =
+        event.target.closest(
+          "[data-participant-id]"
+        );
 
-    createAthlete({
-      id: "athlete-002",
-      order: 11,
-      name: "Sara Verdi",
-      club: "Roller Team Padova",
-      status: SCORE_STATUS.COMPLETED,
-      notes: ["Buona velocità in ingresso"],
-      scores: createScore({
-        technical: [56, 55, 55],
-        artistic: [55, 54, 56],
-        penalty: null,
-        note: "Buona interpretazione",
-      }),
-    }),
+      if (!athleteRow) {
+        return;
+      }
 
-    createAthlete({
-      id: "athlete-003",
-      order: 12,
-      name: "Anna Rossi",
-      club: "ASD Roller Bassano",
-      isFavorite: true,
-      status: SCORE_STATUS.TODO,
-      notes: ["Buona velocità", "Ottime trottole"],
-      previousResults: [
-        "Summer Trophy — Tecnico 5.4 / Artistico 5.3",
-        "Vidor — Tecnico 5.2 / Artistico 5.4",
-      ],
-      scores: createScore({
-        technical: [57, 55, 54],
-        artistic: [51, 52, 57],
-        penalty: -2,
-        note: "prova nota",
-      }),
-    }),
-
-    createAthlete({
-      id: "athlete-004",
-      order: 13,
-      name: "Martina Neri",
-      club: "Pattinaggio Vicenza",
-      status: SCORE_STATUS.CURRENT,
-      notes: [],
-      previousResults: [],
-    }),
-
-    createAthlete({
-      id: "athlete-005",
-      order: 14,
-      name: "Elisa Costa",
-      club: "Roll Club Verona",
-      status: SCORE_STATUS.MISSING,
-      notes: ["Da rivedere salto", "Caduta su trottola", "Buona presenza"],
-      previousResults: ["Regionale AICS — Tecnico 5.1 / Artistico 5.0"],
-    }),
-  ];
-
-  const race = createRace({
-    id: DEFAULT_RACE_ID,
-    name: "Summer Trophy",
-    federation: "AICS",
-    discipline: "Libero",
-    category: "Junior Basic",
-    location: "Misano Adriatico",
-    date: "2026-07-07",
-    startTime: "14:42",
-    minutesPerAthlete: 4,
-    athletes,
-  });
-
-  saveAthletes(athletes);
-  saveRaces([race]);
-  setActiveRaceId(race.id);
+      selectParticipantById(
+        athleteRow.dataset
+          .participantId
+      );
+    }
+  );
 }
 
-window.rollerScoreState = appState;
-// ======================================
-// Service Worker
-// ======================================
+/*
+==================================================
+FORM CREAZIONE GARA
+==================================================
+*/
 
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", async () => {
-    try {
-      await navigator.serviceWorker.register("./sw.js");
-      console.log("✅ Service Worker registrato");
-    } catch (error) {
-      console.error("❌ Errore Service Worker:", error);
+function connectRaceForm() {
+  const raceForm =
+    document.getElementById(
+      "manual-race-form"
+    );
+
+  if (!raceForm) {
+    return;
+  }
+
+  raceForm.addEventListener(
+    "submit",
+    (event) => {
+      event.preventDefault();
+
+      createRealRace();
     }
+  );
+}
+
+function createRealRace() {
+  hideRaceFormError();
+
+  const raceName =
+    getInputValue(
+      "race-name-input"
+    );
+
+  const raceDate =
+    getInputValue(
+      "race-date-input"
+    );
+
+  const raceLocation =
+    getInputValue(
+      "race-location-input"
+    );
+
+  const federation =
+    getInputValue(
+      "race-federation-input"
+    );
+
+  const discipline =
+    getInputValue(
+      "race-discipline-input"
+    );
+
+  const category =
+    getInputValue(
+      "race-category-input"
+    );
+
+  const startTime =
+    getInputValue(
+      "race-start-time-input"
+    );
+
+  const minutesPerAthlete =
+    Number(
+      getInputValue(
+        "race-minutes-input"
+      )
+    );
+
+  const participants =
+    getDraftParticipants();
+
+  if (!raceName) {
+    showRaceFormError(
+      "Inserisci il nome della gara."
+    );
+
+    return;
+  }
+
+  if (!raceDate) {
+    showRaceFormError(
+      "Inserisci la data della gara."
+    );
+
+    return;
+  }
+
+  if (!category) {
+    showRaceFormError(
+      "Inserisci la categoria."
+    );
+
+    return;
+  }
+
+  if (!startTime) {
+    showRaceFormError(
+      "Inserisci l'orario di inizio della categoria."
+    );
+
+    return;
+  }
+
+  if (
+    !Number.isFinite(
+      minutesPerAthlete
+    ) ||
+    minutesPerAthlete < 1
+  ) {
+    showRaceFormError(
+      "Inserisci una durata valida per atleta."
+    );
+
+    return;
+  }
+
+  if (
+    participants.length === 0
+  ) {
+    showRaceFormError(
+      "Aggiungi almeno una partecipante."
+    );
+
+    return;
+  }
+
+  const newRace =
+    createRace({
+      name: raceName,
+      date: raceDate,
+      location: raceLocation,
+      federation,
+      discipline,
+      category,
+      startTime,
+      minutesPerAthlete,
+      participants
+    });
+
+  addRaceToState(
+    newRace
+  );
+
+  saveRaces(
+    appState.races
+  );
+
+  setCurrentRaceId(
+    newRace.id
+  );
+
+  setActiveRaceId(
+    newRace.id
+  );
+
+  clearDraftParticipants();
+
+  resetRaceForm();
+  render();
+
+  showScreen(
+    "race-dashboard-screen"
+  );
+}
+
+/*
+==================================================
+AGGIUNTA PARTECIPANTE
+==================================================
+*/
+
+function connectParticipantForm() {
+  const addParticipantButton =
+    document.getElementById(
+      "add-race-participant"
+    );
+
+  const participantList =
+    document.getElementById(
+      "race-participants-list"
+    );
+
+  if (addParticipantButton) {
+    addParticipantButton.addEventListener(
+      "click",
+      () => {
+        createDraftParticipant();
+      }
+    );
+  }
+
+  if (participantList) {
+    participantList.addEventListener(
+      "click",
+      (event) => {
+        const removeButton =
+          event.target.closest(
+            "[data-remove-participant]"
+          );
+
+        if (!removeButton) {
+          return;
+        }
+
+        removeDraftParticipant(
+          removeButton.dataset
+            .removeParticipant
+        );
+
+        renderDraftParticipants();
+      }
+    );
+  }
+}
+
+function createDraftParticipant() {
+  hideRaceFormError();
+
+  const name =
+    getInputValue(
+      "participant-name-input"
+    );
+
+  const club =
+    getInputValue(
+      "participant-club-input"
+    );
+
+  const entryNumber =
+    Number(
+      getInputValue(
+        "participant-entry-input"
+      )
+    );
+
+  const isFavorite =
+    getInputValue(
+      "participant-favorite-input"
+    ) === "true";
+
+  if (!name) {
+    showRaceFormError(
+      "Inserisci il nome dell'atleta."
+    );
+
+    return;
+  }
+
+  if (
+    !Number.isInteger(
+      entryNumber
+    ) ||
+    entryNumber < 1
+  ) {
+    showRaceFormError(
+      "Inserisci un numero di entrata valido."
+    );
+
+    return;
+  }
+
+  const existingEntryNumber =
+    getDraftParticipants().some(
+      (participant) =>
+        Number(
+          participant.entryNumber
+        ) === entryNumber
+    );
+
+  if (existingEntryNumber) {
+    showRaceFormError(
+      "Questo numero di entrata è già stato utilizzato."
+    );
+
+    return;
+  }
+
+  const archiveAthlete =
+    getOrCreateArchiveAthlete(
+      name,
+      club
+    );
+
+  const participant =
+    createParticipant({
+      athleteId:
+        archiveAthlete.id,
+
+      name:
+        archiveAthlete.name,
+
+      club:
+        archiveAthlete.club,
+
+      entryNumber,
+      isFavorite,
+
+      notes:
+        archiveAthlete.notes,
+
+      previousResults:
+        archiveAthlete
+          .previousResults
+    });
+
+  const added =
+    addDraftParticipant(
+      participant
+    );
+
+  if (!added) {
+    showRaceFormError(
+      "Non è stato possibile aggiungere la partecipante."
+    );
+
+    return;
+  }
+
+  clearParticipantInputs();
+  populateAthleteArchive();
+  renderDraftParticipants();
+}
+
+/*
+==================================================
+ARCHIVIO ATLETE
+==================================================
+*/
+
+function getOrCreateArchiveAthlete(
+  name,
+  club
+) {
+  const existingAthlete =
+    findAthleteInState(
+      name,
+      club
+    );
+
+  if (existingAthlete) {
+    return existingAthlete;
+  }
+
+  const newAthlete =
+    createAthlete({
+      name,
+      club
+    });
+
+  addAthleteToState(
+    newAthlete
+  );
+
+  saveAthletes(
+    appState.athletes
+  );
+
+  return newAthlete;
+}
+
+function populateAthleteArchive() {
+  const datalist =
+    document.getElementById(
+      "athlete-archive-options"
+    );
+
+  if (!datalist) {
+    return;
+  }
+
+  datalist.innerHTML = "";
+
+  appState.athletes
+    .slice()
+    .sort(
+      (
+        firstAthlete,
+        secondAthlete
+      ) =>
+        firstAthlete.name.localeCompare(
+          secondAthlete.name,
+          "it-IT"
+        )
+    )
+    .forEach(
+      (athlete) => {
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          athlete.name;
+
+        option.label =
+          athlete.club ||
+          "Società non indicata";
+
+        datalist.appendChild(
+          option
+        );
+      }
+    );
+}
+
+function connectAthleteArchiveSelection() {
+  const nameInput =
+    document.getElementById(
+      "participant-name-input"
+    );
+
+  if (!nameInput) {
+    return;
+  }
+
+  nameInput.addEventListener(
+    "change",
+    () => {
+      const selectedName =
+        nameInput.value
+          .trim()
+          .toLocaleLowerCase(
+            "it-IT"
+          );
+
+      const selectedAthlete =
+        appState.athletes.find(
+          (athlete) =>
+            athlete.name
+              .trim()
+              .toLocaleLowerCase(
+                "it-IT"
+              ) ===
+            selectedName
+        );
+
+      if (!selectedAthlete) {
+        return;
+      }
+
+      const clubInput =
+        document.getElementById(
+          "participant-club-input"
+        );
+
+      if (clubInput) {
+        clubInput.value =
+          selectedAthlete.club;
+      }
+    }
+  );
+}
+
+/*
+==================================================
+ELENCO PARTECIPANTI PROVVISORIE
+==================================================
+*/
+
+function renderDraftParticipants() {
+  const participants =
+    getDraftParticipants();
+
+  const countElement =
+    document.getElementById(
+      "race-participants-count"
+    );
+
+  const container =
+    document.getElementById(
+      "race-participants-list"
+    );
+
+  if (countElement) {
+    countElement.textContent =
+      participants.length;
+  }
+
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = "";
+
+  if (
+    participants.length === 0
+  ) {
+    container.innerHTML = `
+      <p class="small-muted">
+        Nessuna partecipante inserita.
+      </p>
+    `;
+
+    return;
+  }
+
+  participants.forEach(
+    (participant) => {
+      const row =
+        document.createElement(
+          "div"
+        );
+
+      row.className =
+        participant.isFavorite
+          ? "athlete-row athlete-highlight"
+          : "athlete-row";
+
+      row.innerHTML = `
+        <div class="athlete-number">
+          ${escapeHtml(
+            participant.entryNumber
+          )}
+        </div>
+
+        <div class="athlete-info">
+          <strong>
+            ${
+              participant.isFavorite
+                ? "⭐ "
+                : ""
+            }
+
+            ${escapeHtml(
+              participant.name
+            )}
+          </strong>
+
+          <span>
+            ${escapeHtml(
+              participant.club ||
+                "Società non indicata"
+            )}
+          </span>
+        </div>
+
+        <button
+          class="ghost-button participant-remove-button"
+          type="button"
+          data-remove-participant="${participant.id}"
+        >
+          Rimuovi
+        </button>
+      `;
+
+      container.appendChild(
+        row
+      );
+    }
+  );
+}
+
+/*
+==================================================
+RICERCA ATLETE DELLA GARA
+==================================================
+*/
+
+function connectAthleteSearch() {
+  const searchInput =
+    document.getElementById(
+      "athlete-search-input"
+    );
+
+  if (!searchInput) {
+    return;
+  }
+
+  searchInput.addEventListener(
+    "input",
+    () => {
+      const searchValue =
+        searchInput.value
+          .trim()
+          .toLocaleLowerCase(
+            "it-IT"
+          );
+
+      document
+        .querySelectorAll(
+          "#athlete-list-container .athlete-row"
+        )
+        .forEach(
+          (row) => {
+            const rowText =
+              row.textContent
+                .toLocaleLowerCase(
+                  "it-IT"
+                );
+
+            row.style.display =
+              rowText.includes(
+                searchValue
+              )
+                ? ""
+                : "none";
+          }
+        );
+    }
+  );
+}
+
+/*
+==================================================
+RESET FORM
+==================================================
+*/
+
+function resetRaceForm() {
+  const form =
+    document.getElementById(
+      "manual-race-form"
+    );
+
+  if (form) {
+    form.reset();
+  }
+
+  const minutesInput =
+    document.getElementById(
+      "race-minutes-input"
+    );
+
+  if (minutesInput) {
+    minutesInput.value = "4";
+  }
+
+  clearDraftParticipants();
+  clearParticipantInputs();
+  hideRaceFormError();
+  renderDraftParticipants();
+}
+
+function clearParticipantInputs() {
+  setInputValue(
+    "participant-name-input",
+    ""
+  );
+
+  setInputValue(
+    "participant-club-input",
+    ""
+  );
+
+  setInputValue(
+    "participant-entry-input",
+    ""
+  );
+
+  setInputValue(
+    "participant-favorite-input",
+    "false"
+  );
+
+  document
+    .getElementById(
+      "participant-name-input"
+    )
+    ?.focus();
+}
+
+/*
+==================================================
+MESSAGGI DI ERRORE
+==================================================
+*/
+
+function showRaceFormError(
+  message
+) {
+  const errorElement =
+    document.getElementById(
+      "race-form-error"
+    );
+
+  if (!errorElement) {
+    alert(message);
+
+    return;
+  }
+
+  errorElement.textContent =
+    message;
+
+  errorElement.hidden = false;
+
+  errorElement.scrollIntoView({
+    behavior: "smooth",
+    block: "center"
   });
+}
+
+function hideRaceFormError() {
+  const errorElement =
+    document.getElementById(
+      "race-form-error"
+    );
+
+  if (errorElement) {
+    errorElement.hidden = true;
+    errorElement.textContent =
+      "";
+  }
+}
+
+/*
+==================================================
+FUNZIONI GENERICHE
+==================================================
+*/
+
+function getInputValue(
+  elementId
+) {
+  const element =
+    document.getElementById(
+      elementId
+    );
+
+  return String(
+    element?.value || ""
+  ).trim();
+}
+
+function setInputValue(
+  elementId,
+  value
+) {
+  const element =
+    document.getElementById(
+      elementId
+    );
+
+  if (element) {
+    element.value =
+      value;
+  }
+}
+
+function escapeHtml(
+  value = ""
+) {
+  return String(value)
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+}
+
+/*
+==================================================
+DEBUG ALPHA
+==================================================
+*/
+
+window.rollerScoreState =
+  appState;
+
+/*
+==================================================
+SERVICE WORKER
+==================================================
+*/
+
+if (
+  "serviceWorker" in
+  navigator
+) {
+  window.addEventListener(
+    "load",
+    async () => {
+      try {
+        const registration =
+          await navigator
+            .serviceWorker
+            .register(
+              "./sw.js"
+            );
+
+        registration.update();
+      } catch (error) {
+        console.error(
+          "Errore Service Worker:",
+          error
+        );
+      }
+    }
+  );
 }

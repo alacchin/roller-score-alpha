@@ -1,340 +1,1049 @@
-// ======================================
-// RENDERER.JS
-// Aggiorna la UI leggendo lo stato unico
-// Versione: Alpha 0.0.8
-// ======================================
-
 import {
   getCurrentRace,
-  getCurrentAthlete,
-  getFavoriteAthlete,
-  getAthletePosition,
+  getCurrentParticipant,
+  getFavoriteParticipant,
+  getParticipantPosition,
+  getParticipants,
+  getRaceStatistics
 } from "./state.js";
 
-import { DOM } from "./dom.js";
-
 import {
-  formatAthleteName,
   formatNotesCount,
   getNotesClass,
   getScoreStatusClass,
   getScoreStatusIcon,
+  getStatusLabel
 } from "./ui.js";
 
+/*
+==================================================
+RENDER GENERALE
+==================================================
+*/
+
 export function render() {
-  const race = getCurrentRace();
-  const currentAthlete = getCurrentAthlete();
-  const favoriteAthlete = getFavoriteAthlete();
+  const currentRace =
+    getCurrentRace();
 
-  if (!race) return;
-
-  renderHome(race, favoriteAthlete);
-  renderDashboard(race, favoriteAthlete);
-  renderAthleteList(race);
-  renderScoreEntry(race, currentAthlete);
-  renderAthleteSheet(currentAthlete);
-}
-
-function renderHome(race, favoriteAthlete) {
-  setText(DOM.home.raceName(), race.name);
-  setText(DOM.home.raceInfo(), `${race.federation} • ${race.category}`);
-
-  if (!favoriteAthlete) return;
-
-  setText(DOM.home.favoriteTitle(), "⭐ La nostra atleta");
-  setText(
-    DOM.home.favoriteLiveStatus(),
-    getFavoriteLiveStatus(race, favoriteAthlete)
+  renderHome(
+    currentRace
   );
-  setText(
-    DOM.home.favoritePosition(),
-    formatAthletePosition(race, favoriteAthlete)
+
+  if (!currentRace) {
+    renderEmptyDashboard();
+    renderEmptyAthleteList();
+    renderEmptyScoreEntry();
+    return;
+  }
+
+  renderDashboard(
+    currentRace
   );
-  setText(DOM.home.favoriteEntryNumber(), favoriteAthlete.order);
-  setText(
-    DOM.home.categoryStartTime(),
-    getCategoryStartTime(race, favoriteAthlete)
+
+  renderAthleteList(
+    currentRace
   );
-  setText(
-    DOM.home.favoriteEstimatedTime(),
-    getAthleteEstimatedTime(race, favoriteAthlete)
+
+  renderScoreEntry(
+    currentRace,
+    getCurrentParticipant()
+  );
+
+  renderAthleteSheet(
+    getCurrentParticipant()
   );
 }
 
-function renderDashboard(race, favoriteAthlete) {
-  const totalCount = race.athletes.length;
-  const completedCount = race.athletes.filter(
-    (athlete) => athlete.status === "completed"
-  ).length;
-  const missingCount = race.athletes.filter(
-    (athlete) => athlete.status === "missing"
-  ).length;
-  const todoCount = totalCount - completedCount;
+/*
+==================================================
+HOME
+==================================================
+*/
 
-  setText(DOM.dashboard.raceName(), race.name);
-  setText(DOM.dashboard.raceInfo(), `${race.category} • ${race.location}`);
-  setText(DOM.dashboard.progressText(), `${completedCount} / ${totalCount}`);
-  setText(DOM.dashboard.athletesCount(), totalCount);
-  setText(DOM.dashboard.completedCount(), completedCount);
-  setText(DOM.dashboard.todoCount(), todoCount);
-  setText(DOM.dashboard.missingCount(), missingCount);
+function renderHome(race) {
+  const raceName =
+    document.getElementById(
+      "home-race-name"
+    );
 
-  const progressPercent =
-    totalCount > 0 ? (completedCount / totalCount) * 100 : 0;
-  setWidth(DOM.dashboard.progressFill(), `${progressPercent}%`);
+  const raceInfo =
+    document.getElementById(
+      "home-race-info"
+    );
 
-  updateRaceStatus(completedCount, totalCount);
+  const favoriteName =
+    document.getElementById(
+      "home-favorite-athlete"
+    );
 
-  if (!favoriteAthlete) return;
+  const favoriteStatus =
+    document.getElementById(
+      "home-favorite-live-status"
+    );
+
+  const favoritePosition =
+    document.getElementById(
+      "home-favorite-position"
+    );
+
+  const favoriteEntryNumber =
+    document.getElementById(
+      "home-favorite-entry-number"
+    );
+
+  const categoryStartTime =
+    document.getElementById(
+      "home-category-start-time"
+    );
+
+  const estimatedTime =
+    document.getElementById(
+      "home-favorite-estimated-time"
+    );
+
+  if (!race) {
+    setText(
+      raceName,
+      "Nessuna gara"
+    );
+
+    setText(
+      raceInfo,
+      "Premi “Nuova gara” per iniziare"
+    );
+
+    setText(
+      favoriteName,
+      "⭐ Nessuna atleta preferita"
+    );
+
+    setText(
+      favoriteStatus,
+      "---"
+    );
+
+    setText(
+      favoritePosition,
+      "-- atleta di --"
+    );
+
+    setText(
+      favoriteEntryNumber,
+      "--"
+    );
+
+    setText(
+      categoryStartTime,
+      "--:--"
+    );
+
+    setText(
+      estimatedTime,
+      "--:--"
+    );
+
+    return;
+  }
 
   setText(
-    DOM.dashboard.favoritePosition(),
-    formatAthletePosition(race, favoriteAthlete)
+    raceName,
+    race.name
   );
-  setText(DOM.dashboard.favoriteEntryNumber(), favoriteAthlete.order);
+
   setText(
-    DOM.dashboard.categoryStartTime(),
-    getCategoryStartTime(race, favoriteAthlete)
+    raceInfo,
+    buildRaceInfo(race)
   );
+
+  const favorite =
+    getFavoriteParticipant(
+      race
+    );
+
+  if (!favorite) {
+    setText(
+      favoriteName,
+      "⭐ Nessuna atleta preferita"
+    );
+
+    setText(
+      favoriteStatus,
+      "---"
+    );
+
+    setText(
+      favoritePosition,
+      "-- atleta di --"
+    );
+
+    setText(
+      favoriteEntryNumber,
+      "--"
+    );
+
+    setText(
+      categoryStartTime,
+      race.startTime || "--:--"
+    );
+
+    setText(
+      estimatedTime,
+      "--:--"
+    );
+
+    return;
+  }
+
   setText(
-    DOM.dashboard.favoriteEstimatedTime(),
-    getAthleteEstimatedTime(race, favoriteAthlete)
+    favoriteName,
+    `⭐ ${favorite.name}`
+  );
+
+  setText(
+    favoriteStatus,
+    getFavoriteLiveStatus(
+      race,
+      favorite
+    )
+  );
+
+  setText(
+    favoritePosition,
+    formatParticipantPosition(
+      race,
+      favorite
+    )
+  );
+
+  setText(
+    favoriteEntryNumber,
+    favorite.entryNumber
+  );
+
+  setText(
+    categoryStartTime,
+    race.startTime || "--:--"
+  );
+
+  setText(
+    estimatedTime,
+    getEstimatedTime(
+      race,
+      favorite
+    )
   );
 }
+
+/*
+==================================================
+DASHBOARD GARA
+==================================================
+*/
+
+function renderDashboard(race) {
+  const statistics =
+    getRaceStatistics(
+      race
+    );
+
+  setTextById(
+    "dashboard-race-name",
+    race.name
+  );
+
+  setTextById(
+    "dashboard-race-info",
+    buildRaceInfo(race)
+  );
+
+  setTextById(
+    "dashboard-progress-text",
+    `${statistics.completed} / ${statistics.total}`
+  );
+
+  setTextById(
+    "dashboard-athletes-count",
+    statistics.total
+  );
+
+  setTextById(
+    "dashboard-completed-count",
+    statistics.completed
+  );
+
+  setTextById(
+    "dashboard-todo-count",
+    statistics.todo
+  );
+
+  setTextById(
+    "dashboard-missing-count",
+    statistics.missing
+  );
+
+  const progressFill =
+    document.getElementById(
+      "dashboard-progress-fill"
+    );
+
+  if (progressFill) {
+    const percentage =
+      statistics.total > 0
+        ? (
+            statistics.completed /
+            statistics.total
+          ) * 100
+        : 0;
+
+    progressFill.style.width =
+      `${percentage}%`;
+  }
+
+  const favorite =
+    getFavoriteParticipant(
+      race
+    );
+
+  if (!favorite) {
+    setTextById(
+      "dashboard-favorite-position",
+      "-- atleta di --"
+    );
+
+    setTextById(
+      "dashboard-favorite-entry-number",
+      "--"
+    );
+
+    setTextById(
+      "dashboard-category-start-time",
+      race.startTime || "--:--"
+    );
+
+    setTextById(
+      "dashboard-favorite-estimated-time",
+      "--:--"
+    );
+
+    return;
+  }
+
+  setTextById(
+    "dashboard-favorite-position",
+    formatParticipantPosition(
+      race,
+      favorite
+    )
+  );
+
+  setTextById(
+    "dashboard-favorite-entry-number",
+    favorite.entryNumber
+  );
+
+  setTextById(
+    "dashboard-category-start-time",
+    race.startTime || "--:--"
+  );
+
+  setTextById(
+    "dashboard-favorite-estimated-time",
+    getEstimatedTime(
+      race,
+      favorite
+    )
+  );
+}
+
+function renderEmptyDashboard() {
+  setTextById(
+    "dashboard-race-name",
+    "Nessuna gara"
+  );
+
+  setTextById(
+    "dashboard-race-info",
+    "---"
+  );
+
+  setTextById(
+    "dashboard-progress-text",
+    "0 / 0"
+  );
+
+  setTextById(
+    "dashboard-athletes-count",
+    "0"
+  );
+
+  setTextById(
+    "dashboard-completed-count",
+    "0"
+  );
+
+  setTextById(
+    "dashboard-todo-count",
+    "0"
+  );
+
+  setTextById(
+    "dashboard-missing-count",
+    "0"
+  );
+}
+
+/*
+==================================================
+ELENCO ATLETE
+==================================================
+*/
 
 function renderAthleteList(race) {
-  const list = DOM.athleteList.container();
+  const participants =
+    getParticipants(
+      race
+    );
 
-  setText(DOM.athleteList.title(), race.category);
-  setText(
-    DOM.athleteList.subtitle(),
-    `${race.name} • ${race.athletes.length} atlete`
+  setTextById(
+    "athlete-list-title",
+    race.category
   );
 
-  if (!list) return;
+  setTextById(
+    "athlete-list-subtitle",
+    `${race.name} • ${participants.length} atlete`
+  );
 
-  list.innerHTML = "";
+  const container =
+    document.getElementById(
+      "athlete-list-container"
+    );
 
-  race.athletes.forEach((athlete) => {
-    const row = document.createElement("button");
-    row.className = `athlete-row ${
-      athlete.isFavorite ? "athlete-highlight" : ""
-    }`;
-    row.type = "button";
-    row.dataset.athleteId = athlete.id;
+  if (!container) {
+    return;
+  }
 
-    row.innerHTML = `
-      <div class="athlete-number">${athlete.order}</div>
-      <div class="athlete-info">
-        <strong>${formatAthleteName(athlete)}</strong>
-        <span>${athlete.club}</span>
-        <small class="${getNotesClass(athlete.notes)}">
-          ${formatNotesCount(athlete.notes)}
-        </small>
-      </div>
-      <div class="athlete-status ${getScoreStatusClass(athlete.status)}">
-        ${getScoreStatusIcon(athlete.status)}
-      </div>
+  container.innerHTML = "";
+
+  if (
+    participants.length === 0
+  ) {
+    container.innerHTML = `
+      <p class="small-muted">
+        Nessuna partecipante inserita.
+      </p>
     `;
 
-    list.appendChild(row);
-  });
+    return;
+  }
+
+  participants.forEach(
+    (participant) => {
+      const button =
+        document.createElement(
+          "button"
+        );
+
+      button.type = "button";
+
+      button.dataset.participantId =
+        participant.id;
+
+      button.className =
+        participant.isFavorite
+          ? "athlete-row athlete-highlight"
+          : "athlete-row";
+
+      button.innerHTML = `
+        <div class="athlete-number">
+          ${escapeHtml(
+            participant.entryNumber
+          )}
+        </div>
+
+        <div class="athlete-info">
+          <strong>
+            ${
+              participant.isFavorite
+                ? "⭐ "
+                : ""
+            }
+
+            ${escapeHtml(
+              participant.name
+            )}
+          </strong>
+
+          <span>
+            ${escapeHtml(
+              participant.club ||
+                "Società non indicata"
+            )}
+          </span>
+
+          <small class="${getNotesClass(
+            participant.notes
+          )}">
+            ${formatNotesCount(
+              participant.notes
+            )}
+          </small>
+        </div>
+
+        <div class="athlete-status ${getScoreStatusClass(
+          participant.status
+        )}">
+          ${getScoreStatusIcon(
+            participant.status
+          )}
+        </div>
+      `;
+
+      container.appendChild(
+        button
+      );
+    }
+  );
 }
 
-function renderScoreEntry(race, athlete) {
-  if (!athlete) return;
+function renderEmptyAthleteList() {
+  setTextById(
+    "athlete-list-title",
+    "Nessuna gara"
+  );
 
-  setText(DOM.scoreEntry.order(), formatAthletePosition(race, athlete));
-  setText(DOM.scoreEntry.athleteName(), formatAthleteName(athlete));
-  setText(DOM.scoreEntry.athleteClub(), athlete.club);
-  setText(DOM.scoreEntry.notesCount(), formatNotesCount(athlete.notes));
-  setText(DOM.scoreEntry.statusLabel(), getStatusLabel(athlete.status));
+  setTextById(
+    "athlete-list-subtitle",
+    "---"
+  );
 
-  const statusBadge = DOM.scoreEntry.statusBadge();
+  const container =
+    document.getElementById(
+      "athlete-list-container"
+    );
+
+  if (container) {
+    container.innerHTML = `
+      <p class="small-muted">
+        Crea una gara e aggiungi le partecipanti.
+      </p>
+    `;
+  }
+}
+
+/*
+==================================================
+INSERIMENTO PUNTEGGI
+==================================================
+*/
+
+function renderScoreEntry(
+  race,
+  participant
+) {
+  if (!participant) {
+    renderEmptyScoreEntry();
+    return;
+  }
+
+  setTextById(
+    "score-entry-order",
+    formatParticipantPosition(
+      race,
+      participant
+    )
+  );
+
+  setTextById(
+    "score-entry-athlete-name",
+    participant.name
+  );
+
+  setTextById(
+    "score-entry-athlete-club",
+    participant.club ||
+      "Società non indicata"
+  );
+
+  setTextById(
+    "score-entry-notes-count",
+    formatNotesCount(
+      participant.notes
+    )
+  );
+
+  setTextById(
+    "score-entry-status-label",
+    getStatusLabel(
+      participant.status
+    )
+  );
+
+  const statusBadge =
+    document.getElementById(
+      "score-entry-status-badge"
+    );
 
   if (statusBadge) {
-    statusBadge.className = `score-status-badge ${getScoreStatusClass(
-      athlete.status
-    )}`;
-    statusBadge.textContent = getScoreStatusIcon(athlete.status);
+    statusBadge.className =
+      `score-status-badge ${getScoreStatusClass(
+        participant.status
+      )}`;
+
+    statusBadge.textContent =
+      getScoreStatusIcon(
+        participant.status
+      );
   }
 
-  DOM.scoreEntry.technicalInputs().forEach((input, index) => {
-    input.value = athlete.scores?.technical?.[index] ?? "";
-  });
+  const technicalInputs =
+    document.querySelectorAll(
+      "[data-score-technical]"
+    );
 
-  DOM.scoreEntry.artisticInputs().forEach((input, index) => {
-    input.value = athlete.scores?.artistic?.[index] ?? "";
-  });
+  technicalInputs.forEach(
+    (input, index) => {
+      input.value =
+        participant.scores
+          ?.technical?.[
+            index
+          ] ?? "";
+    }
+  );
 
-  const penaltyInput = DOM.scoreEntry.penaltyInput();
-  const noteInput = DOM.scoreEntry.noteInput();
+  const artisticInputs =
+    document.querySelectorAll(
+      "[data-score-artistic]"
+    );
 
-  if (penaltyInput) penaltyInput.value = athlete.scores?.penalty ?? "";
-  if (noteInput) noteInput.value = athlete.scores?.note ?? "";
+  artisticInputs.forEach(
+    (input, index) => {
+      input.value =
+        participant.scores
+          ?.artistic?.[
+            index
+          ] ?? "";
+    }
+  );
 
-  updateScoreNavigationButtons(race, athlete);
+  const penaltyInput =
+    document.getElementById(
+      "score-penalty"
+    );
+
+  if (penaltyInput) {
+    penaltyInput.value =
+      participant.scores
+        ?.penalty ?? "";
+  }
+
+  const noteInput =
+    document.getElementById(
+      "score-note"
+    );
+
+  if (noteInput) {
+    noteInput.value =
+      participant.scores
+        ?.note ?? "";
+  }
+
+  updateNavigationButtons(
+    race,
+    participant
+  );
 }
 
-function renderAthleteSheet(athlete) {
-  if (!athlete) return;
+function renderEmptyScoreEntry() {
+  setTextById(
+    "score-entry-order",
+    "-- atleta di --"
+  );
 
-  setText(DOM.athleteSheet.name(), formatAthleteName(athlete));
-  setText(DOM.athleteSheet.club(), athlete.club);
+  setTextById(
+    "score-entry-athlete-name",
+    "Nessuna atleta"
+  );
 
-  const notesContainer = DOM.athleteSheet.notes();
-  const resultsContainer = DOM.athleteSheet.results();
+  setTextById(
+    "score-entry-athlete-club",
+    "---"
+  );
+
+  setTextById(
+    "score-entry-notes-count",
+    "📝 Nessuna nota"
+  );
+
+  setTextById(
+    "score-entry-status-label",
+    "Da fare"
+  );
+
+  clearScoreInputs();
+}
+
+/*
+==================================================
+SCHEDA ATLETA
+==================================================
+*/
+
+function renderAthleteSheet(
+  participant
+) {
+  if (!participant) {
+    setTextById(
+      "sheet-athlete-name",
+      "Nessuna atleta"
+    );
+
+    setTextById(
+      "sheet-athlete-club",
+      "---"
+    );
+
+    return;
+  }
+
+  setTextById(
+    "sheet-athlete-name",
+    participant.name
+  );
+
+  setTextById(
+    "sheet-athlete-club",
+    participant.club ||
+      "Società non indicata"
+  );
+
+  const notesContainer =
+    document.getElementById(
+      "sheet-athlete-notes"
+    );
 
   if (notesContainer) {
-    notesContainer.innerHTML = "";
-
-    if (!athlete.notes.length) {
-      notesContainer.innerHTML = "<p>• Nessuna nota precedente</p>";
+    if (
+      participant.notes?.length
+    ) {
+      notesContainer.innerHTML =
+        participant.notes
+          .map(
+            (note) => `
+              <p>
+                • ${escapeHtml(
+                  note
+                )}
+              </p>
+            `
+          )
+          .join("");
     } else {
-      athlete.notes.forEach((note) => {
-        const p = document.createElement("p");
-        p.textContent = `• ${note}`;
-        notesContainer.appendChild(p);
-      });
+      notesContainer.innerHTML = `
+        <p class="small-muted">
+          Nessuna nota precedente.
+        </p>
+      `;
     }
   }
 
-  if (resultsContainer) {
-    resultsContainer.innerHTML = "";
+  const resultsContainer =
+    document.getElementById(
+      "sheet-athlete-results"
+    );
 
-    if (!athlete.previousResults.length) {
-      resultsContainer.innerHTML = "<p>Nessuna gara precedente registrata</p>";
+  if (resultsContainer) {
+    if (
+      participant
+        .previousResults
+        ?.length
+    ) {
+      resultsContainer.innerHTML =
+        participant
+          .previousResults
+          .map(
+            (result) => `
+              <p>
+                ${escapeHtml(
+                  result
+                )}
+              </p>
+            `
+          )
+          .join("");
     } else {
-      athlete.previousResults.forEach((result) => {
-        const p = document.createElement("p");
-        p.textContent = result;
-        resultsContainer.appendChild(p);
-      });
+      resultsContainer.innerHTML = `
+        <p class="small-muted">
+          Nessuna gara precedente registrata.
+        </p>
+      `;
     }
   }
 }
 
-function getFavoriteLiveStatus(race, favoriteAthlete) {
-  if (favoriteAthlete.status === "completed") {
+/*
+==================================================
+FUNZIONI DI SUPPORTO
+==================================================
+*/
+
+function buildRaceInfo(race) {
+  const parts = [
+    race.federation,
+    race.discipline,
+    race.category
+  ].filter(Boolean);
+
+  return parts.join(" • ");
+}
+
+function formatParticipantPosition(
+  race,
+  participant
+) {
+  const position =
+    getParticipantPosition(
+      participant.id,
+      race
+    );
+
+  const total =
+    getParticipants(
+      race
+    ).length;
+
+  if (!position) {
+    return "-- atleta di --";
+  }
+
+  return `${position}ª atleta di ${total}`;
+}
+
+function getFavoriteLiveStatus(
+  race,
+  favorite
+) {
+  if (
+    favorite.status ===
+    "completed"
+  ) {
     return "✅ VALUTAZIONE COMPLETATA";
   }
 
-  if (favoriteAthlete.status === "current") {
+  if (
+    favorite.status ===
+    "current"
+  ) {
     return "🔵 IN PISTA";
   }
 
-  const favoritePosition = getAthletePosition(favoriteAthlete.id);
+  const position =
+    getParticipantPosition(
+      favorite.id,
+      race
+    );
 
-  if (!favoritePosition) {
+  if (!position) {
     return "---";
   }
 
-  const athletesBefore = race.athletes.slice(0, favoritePosition - 1);
+  const participantsBefore =
+    getParticipants(
+      race
+    ).slice(
+      0,
+      position - 1
+    );
 
-  const pendingBeforeCount = athletesBefore.filter(
-    (athlete) => athlete.status !== "completed"
-  ).length;
+  const pendingBefore =
+    participantsBefore.filter(
+      (participant) =>
+        participant.status !==
+        "completed"
+    ).length;
 
-  if (pendingBeforeCount === 0) {
+  if (
+    pendingBefore === 0
+  ) {
     return "🟠 PROSSIMA ATLETA";
   }
 
-  if (pendingBeforeCount === 1) {
+  if (
+    pendingBefore === 1
+  ) {
     return "🟡 TRA 1 ATLETA";
   }
 
-  return `🟡 TRA ${pendingBeforeCount} ATLETE`;
+  return `🟡 TRA ${pendingBefore} ATLETE`;
 }
 
-function updateRaceStatus(completedCount, totalCount) {
-  const statusElement = document.querySelector(".status-box strong");
+function getEstimatedTime(
+  race,
+  participant
+) {
+  const position =
+    getParticipantPosition(
+      participant.id,
+      race
+    );
 
-  if (!statusElement) return;
-
-  if (completedCount === 0) {
-    statusElement.textContent = "🟢 Preparata";
-    return;
+  if (
+    !position ||
+    !race.startTime
+  ) {
+    return "--:--";
   }
 
-  if (completedCount >= totalCount) {
-    statusElement.textContent = "✅ Completata";
-    return;
-  }
+  const [
+    hours,
+    minutes
+  ] = race.startTime
+    .split(":")
+    .map(Number);
 
-  statusElement.textContent = "🔵 In corso";
-}
+  const estimatedDate =
+    new Date();
 
-function updateScoreNavigationButtons(race, athlete) {
-  const position = getAthletePosition(athlete.id);
-  const previousButton = DOM.scoreEntry.previousButton();
-  const nextButton = DOM.scoreEntry.nextButton();
+  estimatedDate.setHours(
+    hours,
+    minutes,
+    0,
+    0
+  );
 
-  if (!position) return;
+  estimatedDate.setMinutes(
+    estimatedDate.getMinutes() +
+      (
+        position - 1
+      ) *
+        Number(
+          race.minutesPerAthlete ||
+            4
+        )
+  );
 
-  if (previousButton) previousButton.disabled = position === 1;
-  if (nextButton) nextButton.disabled = position === race.athletes.length;
-}
-
-function formatAthletePosition(race, athlete) {
-  const position = getAthletePosition(athlete.id);
-  if (!position) return "-- atleta di --";
-  return `${position}ª atleta di ${race.athletes.length}`;
-}
-
-function getCategoryStartTime(race, athlete) {
-  const position = getAthletePosition(athlete.id);
-  if (!position) return "--:--";
-  return calculateEstimatedTime(race.startTime, 1, race.minutesPerAthlete);
-}
-
-function getAthleteEstimatedTime(race, athlete) {
-  const position = getAthletePosition(athlete.id);
-  if (!position) return "--:--";
-  return calculateEstimatedTime(
-    race.startTime,
-    position,
-    race.minutesPerAthlete
+  return estimatedDate.toLocaleTimeString(
+    "it-IT",
+    {
+      hour: "2-digit",
+      minute: "2-digit"
+    }
   );
 }
 
-function getStatusLabel(status) {
-  switch (status) {
-    case "completed":
-      return "Completata";
-    case "current":
-      return "In corso";
-    case "missing":
-      return "Da completare";
-    case "todo":
-    default:
-      return "Da fare";
+function updateNavigationButtons(
+  race,
+  participant
+) {
+  const position =
+    getParticipantPosition(
+      participant.id,
+      race
+    );
+
+  const total =
+    getParticipants(
+      race
+    ).length;
+
+  const previousButton =
+    document.getElementById(
+      "previous-athlete"
+    );
+
+  const nextButton =
+    document.getElementById(
+      "next-athlete"
+    );
+
+  if (previousButton) {
+    previousButton.disabled =
+      position === 1;
+  }
+
+  if (nextButton) {
+    nextButton.disabled =
+      position === total;
   }
 }
 
-function setText(element, value) {
-  if (element) element.textContent = value;
+function clearScoreInputs() {
+  document
+    .querySelectorAll(
+      "[data-score-technical], [data-score-artistic]"
+    )
+    .forEach(
+      (input) => {
+        input.value = "";
+      }
+    );
+
+  const penaltyInput =
+    document.getElementById(
+      "score-penalty"
+    );
+
+  if (penaltyInput) {
+    penaltyInput.value = "";
+  }
+
+  const noteInput =
+    document.getElementById(
+      "score-note"
+    );
+
+  if (noteInput) {
+    noteInput.value = "";
+  }
 }
 
-function setWidth(element, value) {
-  if (element) element.style.width = value;
-}
+function setTextById(
+  elementId,
+  value
+) {
+  const element =
+    document.getElementById(
+      elementId
+    );
 
-function calculateEstimatedTime(startTime, position, minutesPerAthlete) {
-  if (!startTime || !position || !minutesPerAthlete) return "--:--";
-
-  const [hours, minutes] = startTime.split(":").map(Number);
-  const startDate = new Date();
-
-  startDate.setHours(hours);
-  startDate.setMinutes(minutes);
-  startDate.setSeconds(0);
-
-  const estimatedDate = new Date(
-    startDate.getTime() + (position - 1) * minutesPerAthlete * 60000
+  setText(
+    element,
+    value
   );
+}
 
-  return estimatedDate.toLocaleTimeString("it-IT", {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+function setText(
+  element,
+  value
+) {
+  if (element) {
+    element.textContent =
+      value ?? "";
+  }
+}
+
+function escapeHtml(
+  value = ""
+) {
+  return String(value)
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
 }

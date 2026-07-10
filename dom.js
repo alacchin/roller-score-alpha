@@ -1,80 +1,444 @@
-// ======================================
-// DOM.JS
-// Riferimenti centralizzati agli elementi HTML
-// Versione: Alpha 0.0.8
-// ======================================
+/*
+==================================================
+DOM.JS
+Riferimenti centralizzati agli elementi HTML
+Versione: Alpha 0.2
+==================================================
+*/
+
+function getById(elementId) {
+  return document.getElementById(
+    elementId
+  );
+}
+
+function getAll(selector) {
+  return document.querySelectorAll(
+    selector
+  );
+}
 
 export const DOM = {
-  screens: () => document.querySelectorAll(".screen"),
+  /*
+  ================================================
+  SCHERMATE
+  ================================================
+  */
+
+  screens: () =>
+    getAll(".screen"),
+
+  /*
+  ================================================
+  HOME
+  ================================================
+  */
 
   home: {
-    raceName: () => document.getElementById("home-race-name"),
-    raceInfo: () => document.getElementById("home-race-info"),
-    favoriteTitle: () => document.getElementById("home-favorite-athlete"),
+    raceName: () =>
+      getById(
+        "home-race-name"
+      ),
+
+    raceInfo: () =>
+      getById(
+        "home-race-info"
+      ),
+
+    favoriteAthlete: () =>
+      getById(
+        "home-favorite-athlete"
+      ),
+
     favoriteLiveStatus: () =>
-      document.getElementById("home-favorite-live-status"),
-    favoritePosition: () => document.getElementById("home-favorite-position"),
+      getById(
+        "home-favorite-live-status"
+      ),
+
+    favoritePosition: () =>
+      getById(
+        "home-favorite-position"
+      ),
+
     favoriteEntryNumber: () =>
-      document.getElementById("home-favorite-entry-number"),
+      getById(
+        "home-favorite-entry-number"
+      ),
+
     categoryStartTime: () =>
-      document.getElementById("home-category-start-time"),
+      getById(
+        "home-category-start-time"
+      ),
+
     favoriteEstimatedTime: () =>
-      document.getElementById("home-favorite-estimated-time"),
+      getById(
+        "home-favorite-estimated-time"
+      )
   },
+
+  /*
+  ================================================
+  DASHBOARD GARA
+  ================================================
+  */
 
   dashboard: {
-    raceName: () => document.getElementById("dashboard-race-name"),
-    raceInfo: () => document.getElementById("dashboard-race-info"),
-    progressText: () => document.getElementById("dashboard-progress-text"),
-    progressFill: () => document.getElementById("dashboard-progress-fill"),
-    athletesCount: () => document.getElementById("dashboard-athletes-count"),
-    completedCount: () => document.getElementById("dashboard-completed-count"),
-    todoCount: () => document.getElementById("dashboard-todo-count"),
-    missingCount: () => document.getElementById("dashboard-missing-count"),
+    raceName: () =>
+      getById(
+        "dashboard-race-name"
+      ),
+
+    raceInfo: () =>
+      getById(
+        "dashboard-race-info"
+      ),
+
+    progressText: () =>
+      getById(
+        "dashboard-progress-text"
+      ),
+
+    progressFill: () =>
+      getById(
+        "dashboard-progress-fill"
+      ),
+
+    athletesCount: () =>
+      getById(
+        "dashboard-athletes-count"
+      ),
+
+    completedCount: () =>
+      getById(
+        "dashboard-completed-count"
+      ),
+
+    todoCount: () =>
+      getById(
+        "dashboard-todo-count"
+      ),
+
+    missingCount: () =>
+      getById(
+        "dashboard-missing-count"
+      ),
+
     favoritePosition: () =>
-      document.getElementById("dashboard-favorite-position"),
+      getById(
+        "dashboard-favorite-position"
+      ),
+
     favoriteEntryNumber: () =>
-      document.getElementById("dashboard-favorite-entry-number"),
+      getById(
+        "dashboard-favorite-entry-number"
+      ),
+
     categoryStartTime: () =>
-      document.getElementById("dashboard-category-start-time"),
+      getById(
+        "dashboard-category-start-time"
+      ),
+
     favoriteEstimatedTime: () =>
-      document.getElementById("dashboard-favorite-estimated-time"),
+      getById(
+        "dashboard-favorite-estimated-time"
+      )
   },
+
+  /*
+  ================================================
+  ELENCO ATLETE
+  ================================================
+  */
 
   athleteList: {
-    title: () => document.getElementById("athlete-list-title"),
-    subtitle: () => document.getElementById("athlete-list-subtitle"),
-    container: () => document.getElementById("athlete-list-container"),
+    title: () =>
+      getById(
+        "athlete-list-title"
+      ),
+
+    subtitle: () =>
+      getById(
+        "athlete-list-subtitle"
+      ),
+
+    searchInput: () =>
+      getById(
+        "athlete-search-input"
+      ),
+
+    container: () =>
+      getById(
+        "athlete-list-container"
+      )
   },
+
+  /*
+  ================================================
+  INSERIMENTO PUNTEGGI
+  ================================================
+  */
 
   scoreEntry: {
-    order: () => document.getElementById("score-entry-order"),
-    athleteName: () => document.getElementById("score-entry-athlete-name"),
-    athleteClub: () => document.getElementById("score-entry-athlete-club"),
-    notesCount: () => document.getElementById("score-entry-notes-count"),
-    statusBadge: () => document.getElementById("score-entry-status-badge"),
-    statusLabel: () => document.getElementById("score-entry-status-label"),
-    technicalInputs: () => document.querySelectorAll("[data-score-technical]"),
-    artisticInputs: () => document.querySelectorAll("[data-score-artistic]"),
-    penaltyInput: () => document.getElementById("score-penalty"),
-    noteInput: () => document.getElementById("score-note"),
-    previousButton: () => document.getElementById("previous-athlete"),
-    nextButton: () => document.getElementById("next-athlete"),
-    saveAndNextButton: () => document.getElementById("save-and-next-athlete"),
+    order: () =>
+      getById(
+        "score-entry-order"
+      ),
+
+    athleteName: () =>
+      getById(
+        "score-entry-athlete-name"
+      ),
+
+    athleteClub: () =>
+      getById(
+        "score-entry-athlete-club"
+      ),
+
+    notesCount: () =>
+      getById(
+        "score-entry-notes-count"
+      ),
+
+    statusBadge: () =>
+      getById(
+        "score-entry-status-badge"
+      ),
+
+    statusLabel: () =>
+      getById(
+        "score-entry-status-label"
+      ),
+
+    technicalInputs: () =>
+      getAll(
+        "[data-score-technical]"
+      ),
+
+    artisticInputs: () =>
+      getAll(
+        "[data-score-artistic]"
+      ),
+
+    penaltyInput: () =>
+      getById(
+        "score-penalty"
+      ),
+
+    noteInput: () =>
+      getById(
+        "score-note"
+      ),
+
+    previousButton: () =>
+      getById(
+        "previous-athlete"
+      ),
+
+    nextButton: () =>
+      getById(
+        "next-athlete"
+      ),
+
+    saveButton: () =>
+      getById(
+        "save-and-next-athlete"
+      )
   },
+
+  /*
+  ================================================
+  NUOVA GARA
+  ================================================
+  */
+
+  raceForm: {
+    form: () =>
+      getById(
+        "manual-race-form"
+      ),
+
+    nameInput: () =>
+      getById(
+        "race-name-input"
+      ),
+
+    dateInput: () =>
+      getById(
+        "race-date-input"
+      ),
+
+    locationInput: () =>
+      getById(
+        "race-location-input"
+      ),
+
+    federationInput: () =>
+      getById(
+        "race-federation-input"
+      ),
+
+    disciplineInput: () =>
+      getById(
+        "race-discipline-input"
+      ),
+
+    categoryInput: () =>
+      getById(
+        "race-category-input"
+      ),
+
+    startTimeInput: () =>
+      getById(
+        "race-start-time-input"
+      ),
+
+    minutesInput: () =>
+      getById(
+        "race-minutes-input"
+      ),
+
+    error: () =>
+      getById(
+        "race-form-error"
+      ),
+
+    createButton: () =>
+      getById(
+        "create-race-button"
+      )
+  },
+
+  /*
+  ================================================
+  PARTECIPANTI PROVVISORIE
+  ================================================
+  */
+
+  participants: {
+    nameInput: () =>
+      getById(
+        "participant-name-input"
+      ),
+
+    clubInput: () =>
+      getById(
+        "participant-club-input"
+      ),
+
+    entryInput: () =>
+      getById(
+        "participant-entry-input"
+      ),
+
+    favoriteInput: () =>
+      getById(
+        "participant-favorite-input"
+      ),
+
+    addButton: () =>
+      getById(
+        "add-race-participant"
+      ),
+
+    count: () =>
+      getById(
+        "race-participants-count"
+      ),
+
+    list: () =>
+      getById(
+        "race-participants-list"
+      ),
+
+    archiveOptions: () =>
+      getById(
+        "athlete-archive-options"
+      )
+  },
+
+  /*
+  ================================================
+  SCHEDA ATLETA
+  ================================================
+  */
 
   athleteSheet: {
-    sheet: () => document.getElementById("athlete-sheet"),
-    name: () => document.getElementById("sheet-athlete-name"),
-    club: () => document.getElementById("sheet-athlete-club"),
-    notes: () => document.getElementById("sheet-athlete-notes"),
-    results: () => document.getElementById("sheet-athlete-results"),
+    sheet: () =>
+      getById(
+        "athlete-sheet"
+      ),
+
+    name: () =>
+      getById(
+        "sheet-athlete-name"
+      ),
+
+    club: () =>
+      getById(
+        "sheet-athlete-club"
+      ),
+
+    notes: () =>
+      getById(
+        "sheet-athlete-notes"
+      ),
+
+    results: () =>
+      getById(
+        "sheet-athlete-results"
+      ),
+
+    openButton: () =>
+      getById(
+        "open-athlete-sheet"
+      ),
+
+    closeButton: () =>
+      getById(
+        "close-athlete-sheet"
+      )
   },
 
+  /*
+  ================================================
+  PULSANTI PRINCIPALI
+  ================================================
+  */
+
   buttons: {
-    startFromHome: () => document.getElementById("go-score-entry-home"),
-    startFromDashboard: () =>
-      document.getElementById("go-score-entry-dashboard"),
-    athleteList: () => document.getElementById("athlete-list-container"),
-  },
+    newRace: () =>
+      getById(
+        "go-new-race"
+      ),
+
+    openRace: () =>
+      getById(
+        "go-race-dashboard"
+      ),
+
+    startRaceFromHome: () =>
+      getById(
+        "go-score-entry-home"
+      ),
+
+    startRaceFromDashboard: () =>
+      getById(
+        "go-score-entry-dashboard"
+      ),
+
+    athleteList: () =>
+      getById(
+        "go-athlete-list"
+      ),
+
+    acquireRace: () =>
+      getById(
+        "go-acquire-race"
+      ),
+
+    manualRace: () =>
+      getById(
+        "go-manual-race"
+      )
+  }
 };

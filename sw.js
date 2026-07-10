@@ -1,19 +1,25 @@
-const CACHE_NAME = "roller-score-v2";
+/*
+==================================================
+SERVICE WORKER
+Roller Score — Alpha 0.2
+==================================================
+*/
+
+const CACHE_NAME = "roller-score-alpha-0.2-v1";
 
 const FILES_TO_CACHE = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
-  "./config.js",
-  "./dom.js",
   "./models.js",
-  "./navigation.js",
-  "./raceController.js",
-  "./renderer.js",
-  "./scoreController.js",
-  "./state.js",
   "./storage.js",
+  "./state.js",
+  "./renderer.js",
+  "./raceController.js",
+  "./scoreController.js",
+  "./navigation.js",
+  "./dom.js",
   "./ui.js",
   "./athleteSheet.js",
   "./app.webmanifest",
@@ -21,26 +27,122 @@ const FILES_TO_CACHE = [
   "./icon-512.png"
 ];
 
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(FILES_TO_CACHE))
-  );
-});
+/*
+==================================================
+INSTALLAZIONE
+==================================================
+*/
 
-self.addEventListener("activate", (event) => {
-  event.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(
-        keys
-          .filter((key) => key !== CACHE_NAME)
-          .map((key) => caches.delete(key))
-      )
-    )
-  );
-});
+self.addEventListener(
+  "install",
+  (event) => {
+    self.skipWaiting();
 
-self.addEventListener("fetch", (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => response || fetch(event.request))
-  );
-});
+    event.waitUntil(
+      caches
+        .open(CACHE_NAME)
+        .then((cache) =>
+          cache.addAll(
+            FILES_TO_CACHE
+          )
+        )
+    );
+  }
+);
+
+/*
+==================================================
+ATTIVAZIONE E PULIZIA VECCHIE CACHE
+==================================================
+*/
+
+self.addEventListener(
+  "activate",
+  (event) => {
+    event.waitUntil(
+      Promise.all([
+        caches
+          .keys()
+          .then((cacheNames) =>
+            Promise.all(
+              cacheNames
+                .filter(
+                  (cacheName) =>
+                    cacheName !==
+                    CACHE_NAME
+                )
+                .map(
+                  (cacheName) =>
+                    caches.delete(
+                      cacheName
+                    )
+                )
+            )
+          ),
+
+        self.clients.claim()
+      ])
+    );
+  }
+);
+
+/*
+==================================================
+GESTIONE RICHIESTE
+==================================================
+
+Strategia:
+- prova prima la rete;
+- se la rete non è disponibile usa la cache;
+- aggiorna la cache con i file più recenti.
+*/
+
+self.addEventListener(
+  "fetch",
+  (event) => {
+    if (
+      event.request.method !==
+      "GET"
+    ) {
+      return;
+    }
+
+    event.respondWith(
+      fetch(event.request)
+        .then((networkResponse) => {
+          if (
+            !networkResponse ||
+            networkResponse.status !==
+              200
+          ) {
+            return networkResponse;
+          }
+
+          const responseCopy =
+            networkResponse.clone();
+
+          caches
+            .open(CACHE_NAME)
+            .then((cache) => {
+              cache.put(
+                event.request,
+                responseCopy
+              );
+            });
+
+          return networkResponse;
+        })
+        .catch(() =>
+          caches
+            .match(event.request)
+            .then(
+              (cachedResponse) =>
+                cachedResponse ||
+                caches.match(
+                  "./index.html"
+                )
+            )
+        )
+    );
+  }
+);

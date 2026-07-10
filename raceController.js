@@ -1,82 +1,243 @@
-// ======================================
-// RACECONTROLLER.JS
-// Gestione gara e selezione atleta
-// Versione: Alpha 0.0.6
-// ======================================
-
 import {
   getCurrentRace,
-  getCurrentAthlete,
-  getStartingAthlete,
-  setCurrentAthleteId,
+  getCurrentParticipant,
+  getParticipants,
+  getStartingParticipant,
+  setCurrentParticipantId
 } from "./state.js";
 
-import { showScreen } from "./navigation.js";
-import { render } from "./renderer.js";
+import {
+  showScreen
+} from "./navigation.js";
+
+import {
+  render
+} from "./renderer.js";
+
+/*
+==================================================
+AVVIO GARA
+==================================================
+*/
 
 export function startRace() {
-  const race = getCurrentRace();
+  const currentRace =
+    getCurrentRace();
 
-  if (!race) return;
+  if (!currentRace) {
+    alert(
+      "Crea o apri una gara prima di iniziare."
+    );
 
-  const startingAthlete = getStartingAthlete(race);
+    return;
+  }
 
-  if (!startingAthlete) return;
+  const participants =
+    getParticipants(
+      currentRace
+    );
 
-  setCurrentAthleteId(startingAthlete.id);
-  render();
-  showScreen("score-entry-screen");
-}
+  if (
+    participants.length === 0
+  ) {
+    alert(
+      "La gara non contiene partecipanti."
+    );
 
-export function selectAthleteById(athleteId) {
-  const race = getCurrentRace();
+    return;
+  }
 
-  if (!race) return;
+  const startingParticipant =
+    getStartingParticipant(
+      currentRace
+    );
 
-  const athlete = race.athletes.find((item) => item.id === athleteId);
+  if (!startingParticipant) {
+    alert(
+      "Non è stato possibile individuare la prima partecipante."
+    );
 
-  if (!athlete) return;
+    return;
+  }
 
-  setCurrentAthleteId(athlete.id);
-  render();
-  showScreen("score-entry-screen");
-}
-
-export function goToPreviousAthlete() {
-  const previousAthlete = getRelativeAthlete(-1);
-
-  if (!previousAthlete) return;
-
-  setCurrentAthleteId(previousAthlete.id);
-  render();
-}
-
-export function goToNextAthlete() {
-  const nextAthlete = getRelativeAthlete(1);
-
-  if (!nextAthlete) return;
-
-  setCurrentAthleteId(nextAthlete.id);
-  render();
-}
-
-function getRelativeAthlete(direction) {
-  const race = getCurrentRace();
-  const currentAthlete = getCurrentAthlete();
-
-  if (!race || !currentAthlete) return null;
-
-  const currentIndex = race.athletes.findIndex(
-    (athlete) => athlete.id === currentAthlete.id
+  setCurrentParticipantId(
+    startingParticipant.id
   );
 
-  if (currentIndex === -1) return null;
+  render();
 
-  const nextIndex = currentIndex + direction;
+  showScreen(
+    "score-entry-screen"
+  );
+}
 
-  if (nextIndex < 0 || nextIndex >= race.athletes.length) {
+/*
+==================================================
+SELEZIONE PARTECIPANTE
+==================================================
+*/
+
+export function selectParticipantById(
+  participantId
+) {
+  const participant =
+    getParticipants().find(
+      (item) =>
+        item.id === participantId
+    );
+
+  if (!participant) {
+    return;
+  }
+
+  setCurrentParticipantId(
+    participant.id
+  );
+
+  render();
+
+  showScreen(
+    "score-entry-screen"
+  );
+}
+
+/*
+==================================================
+NAVIGAZIONE PRECEDENTE / SUCCESSIVA
+==================================================
+*/
+
+export function goToPreviousParticipant() {
+  moveToRelativeParticipant(
+    -1
+  );
+}
+
+export function goToNextParticipant() {
+  moveToRelativeParticipant(
+    1
+  );
+}
+
+function moveToRelativeParticipant(
+  direction
+) {
+  const currentRace =
+    getCurrentRace();
+
+  const currentParticipant =
+    getCurrentParticipant();
+
+  if (
+    !currentRace ||
+    !currentParticipant
+  ) {
+    return;
+  }
+
+  const participants =
+    getParticipants(
+      currentRace
+    );
+
+  const currentIndex =
+    participants.findIndex(
+      (participant) =>
+        participant.id ===
+        currentParticipant.id
+    );
+
+  if (
+    currentIndex < 0
+  ) {
+    return;
+  }
+
+  const targetIndex =
+    currentIndex + direction;
+
+  if (
+    targetIndex < 0 ||
+    targetIndex >=
+      participants.length
+  ) {
+    return;
+  }
+
+  const targetParticipant =
+    participants[targetIndex];
+
+  setCurrentParticipantId(
+    targetParticipant.id
+  );
+
+  render();
+}
+
+/*
+==================================================
+FUNZIONI DI SUPPORTO
+==================================================
+*/
+
+export function getPreviousParticipant() {
+  return getRelativeParticipant(
+    -1
+  );
+}
+
+export function getNextParticipant() {
+  return getRelativeParticipant(
+    1
+  );
+}
+
+function getRelativeParticipant(
+  direction
+) {
+  const currentRace =
+    getCurrentRace();
+
+  const currentParticipant =
+    getCurrentParticipant();
+
+  if (
+    !currentRace ||
+    !currentParticipant
+  ) {
     return null;
   }
 
-  return race.athletes[nextIndex];
+  const participants =
+    getParticipants(
+      currentRace
+    );
+
+  const currentIndex =
+    participants.findIndex(
+      (participant) =>
+        participant.id ===
+        currentParticipant.id
+    );
+
+  if (
+    currentIndex < 0
+  ) {
+    return null;
+  }
+
+  const targetIndex =
+    currentIndex + direction;
+
+  if (
+    targetIndex < 0 ||
+    targetIndex >=
+      participants.length
+  ) {
+    return null;
+  }
+
+  return participants[
+    targetIndex
+  ];
 }

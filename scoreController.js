@@ -1,86 +1,315 @@
-// ======================================
-// SCORECONTROLLER.JS
-// Gestione inserimento e salvataggio punteggi
-// Versione: Alpha 0.0.7
-// ======================================
+import {
+  createScore
+} from "./models.js";
 
-import { getCurrentRace, getCurrentAthlete } from "./state.js";
-import { createScore } from "./models.js";
-import { saveRaces } from "./storage.js";
-import { goToNextAthlete } from "./raceController.js";
-import { render } from "./renderer.js";
-import { DOM } from "./dom.js";
+import {
+  appState,
+  getCurrentRace,
+  getCurrentParticipant,
+  getParticipants
+} from "./state.js";
+
+import {
+  saveRaces
+} from "./storage.js";
+
+import {
+  goToNextParticipant
+} from "./raceController.js";
+
+import {
+  render
+} from "./renderer.js";
+
+/*
+==================================================
+SALVATAGGIO PUNTEGGI
+==================================================
+*/
 
 export function saveCurrentScore() {
-  const race = getCurrentRace();
-  const athlete = getCurrentAthlete();
+  const currentRace =
+    getCurrentRace();
 
-  if (!race || !athlete) return;
+  const currentParticipant =
+    getCurrentParticipant();
 
-  athlete.scores = createScore({
-    technical: readScoreInputs(DOM.scoreEntry.technicalInputs()),
-    artistic: readScoreInputs(DOM.scoreEntry.artisticInputs()),
-    penalty: readPenalty(),
-    note: readNote(),
-  });
+  if (
+    !currentRace ||
+    !currentParticipant
+  ) {
+    alert(
+      "Nessuna partecipante selezionata."
+    );
 
-  athlete.status = "completed";
-
-  const nextAthlete = getNextAthlete(race, athlete);
-
-  if (nextAthlete) {
-    nextAthlete.status = "current";
+    return;
   }
 
-  saveRaces([race]);
+  const technicalScores =
+    readScoreInputs(
+      "[data-score-technical]"
+    );
+
+  const artisticScores =
+    readScoreInputs(
+      "[data-score-artistic]"
+    );
+
+  if (
+    technicalScores.includes(
+      null
+    ) ||
+    artisticScores.includes(
+      null
+    )
+  ) {
+    alert(
+      "Inserisci tutti i punteggi tecnico e artistico."
+    );
+
+    return;
+  }
+
+  const penalty =
+    readPenalty();
+
+  const note =
+    readNote();
+
+  currentParticipant.scores =
+    createScore({
+      technical:
+        technicalScores,
+
+      artistic:
+        artisticScores,
+
+      penalty,
+
+      note
+    });
+
+  currentParticipant.status =
+    "completed";
+
+  currentRace.updatedAt =
+    new Date().toISOString();
+
+  const nextParticipant =
+    getNextParticipant(
+      currentRace,
+      currentParticipant
+    );
+
+  if (
+    nextParticipant &&
+    nextParticipant.status !==
+      "completed"
+  ) {
+    resetOtherCurrentParticipants(
+      currentRace,
+      nextParticipant.id
+    );
+
+    nextParticipant.status =
+      "current";
+  }
+
+  saveRaces(
+    appState.races
+  );
 
   render();
 
-  if (nextAthlete) {
-    goToNextAthlete();
+  if (
+    nextParticipant
+  ) {
+    goToNextParticipant();
+
+    return;
   }
-}
 
-function getNextAthlete(race, athlete) {
-  const currentIndex = race.athletes.findIndex(
-    (item) => item.id === athlete.id
+  alert(
+    "Ultima partecipante salvata. Gara completata."
   );
-
-  if (currentIndex === -1) return null;
-
-  return race.athletes[currentIndex + 1] || null;
 }
 
-function readScoreInputs(inputs) {
-  return Array.from(inputs).map((input) => {
-    const cleanValue = cleanScoreValue(input.value);
+/*
+==================================================
+LETTURA PUNTEGGI
+==================================================
+*/
 
-    input.value = cleanValue;
+function readScoreInputs(
+  selector
+) {
+  return Array.from(
+    document.querySelectorAll(
+      selector
+    )
+  ).map(
+    (input) => {
+      const cleanValue =
+        cleanScoreValue(
+          input.value
+        );
 
-    if (cleanValue === "") {
-      return null;
+      input.value =
+        cleanValue;
+
+      if (
+        cleanValue === ""
+      ) {
+        return null;
+      }
+
+      return Number(
+        cleanValue
+      );
     }
-
-    return Number(cleanValue);
-  });
+  );
 }
+
+function cleanScoreValue(
+  value
+) {
+  return String(
+    value || ""
+  )
+    .replace(
+      /\D/g,
+      ""
+    )
+    .slice(
+      0,
+      2
+    );
+}
+
+/*
+==================================================
+PENALITÀ
+==================================================
+*/
 
 function readPenalty() {
-  const penaltyInput = DOM.scoreEntry.penaltyInput();
+  const penaltyInput =
+    document.getElementById(
+      "score-penalty"
+    );
 
-  if (!penaltyInput || penaltyInput.value === "") {
+  if (
+    !penaltyInput
+  ) {
     return null;
   }
 
-  return Number(penaltyInput.value);
+  const value =
+    String(
+      penaltyInput.value || ""
+    ).trim();
+
+  if (
+    value === ""
+  ) {
+    return null;
+  }
+
+  const numericValue =
+    Number(value);
+
+  return Number.isFinite(
+    numericValue
+  )
+    ? numericValue
+    : null;
 }
+
+/*
+==================================================
+NOTA PRESTAZIONE
+==================================================
+*/
 
 function readNote() {
-  const noteInput = DOM.scoreEntry.noteInput();
+  const noteInput =
+    document.getElementById(
+      "score-note"
+    );
 
-  return noteInput?.value || "";
+  return String(
+    noteInput?.value || ""
+  ).trim();
 }
 
-function cleanScoreValue(value) {
-  return value.replace(/\D/g, "").slice(0, 2);
+/*
+==================================================
+PARTECIPANTE SUCCESSIVA
+==================================================
+*/
+
+function getNextParticipant(
+  race,
+  participant
+) {
+  const participants =
+    getParticipants(
+      race
+    );
+
+  const currentIndex =
+    participants.findIndex(
+      (item) =>
+        item.id ===
+        participant.id
+    );
+
+  if (
+    currentIndex < 0
+  ) {
+    return null;
+  }
+
+  return (
+    participants[
+      currentIndex + 1
+    ] || null
+  );
+}
+
+/*
+==================================================
+GESTIONE STATO "IN CORSO"
+==================================================
+
+Manteniamo una sola partecipante "In corso"
+alla volta.
+
+Le partecipanti completate non vengono modificate.
+*/
+
+function resetOtherCurrentParticipants(
+  race,
+  nextParticipantId
+) {
+  getParticipants(
+    race
+  ).forEach(
+    (participant) => {
+      if (
+        participant.id ===
+        nextParticipantId
+      ) {
+        return;
+      }
+
+      if (
+        participant.status ===
+        "current"
+      ) {
+        participant.status =
+          "todo";
+      }
+    }
+  );
 }

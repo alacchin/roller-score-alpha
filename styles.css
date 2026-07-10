@@ -9,13 +9,20 @@
   font-family: Arial, Helvetica, sans-serif;
 }
 
-/* ==========================
-   TEMA GENERALE
-========================== */
+:root {
+  color-scheme: dark;
+}
 
 body {
   background: #111827;
   color: white;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
 /* ==========================
@@ -23,6 +30,7 @@ body {
 ========================== */
 
 .app {
+  width: 100%;
   max-width: 430px;
   margin: auto;
   padding: 20px;
@@ -93,6 +101,10 @@ body {
   margin-bottom: 6px;
 }
 
+.card h3 {
+  color: #d1d5db;
+}
+
 .muted {
   color: #bdbdbd;
   line-height: 1.4;
@@ -102,7 +114,8 @@ body {
   display: block;
   color: #9ca3af;
   font-size: 13px;
-  margin-top: 6px;
+  margin-top: 8px;
+  line-height: 1.4;
 }
 
 /* ==========================
@@ -115,6 +128,7 @@ body {
   background: #374151;
   border-radius: 12px;
 }
+
 .favorite-live-status,
 .favorite-position {
   display: block;
@@ -142,6 +156,7 @@ body {
 .info-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   gap: 12px;
 }
 
@@ -152,36 +167,6 @@ body {
 
 .info-row strong {
   font-size: 15px;
-}
-
-/* ==========================
-   TEMPI HOME
-========================== */
-
-.time-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  margin: 20px 0;
-}
-
-.time-grid div,
-.summary-grid div {
-  background: #111827;
-  padding: 14px;
-  border-radius: 10px;
-}
-
-.time-grid span,
-.summary-grid span {
-  display: block;
-  color: #9ca3af;
-  font-size: 12px;
-}
-
-.time-grid strong,
-.summary-grid strong {
-  font-size: 18px;
 }
 
 /* ==========================
@@ -230,6 +215,7 @@ body {
   width: 0%;
   height: 100%;
   background: #22c55e;
+  transition: width 0.2s ease;
 }
 
 .summary-grid {
@@ -237,6 +223,22 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 14px;
   margin-top: 18px;
+}
+
+.summary-grid div {
+  background: #111827;
+  padding: 14px;
+  border-radius: 10px;
+}
+
+.summary-grid span {
+  display: block;
+  color: #9ca3af;
+  font-size: 12px;
+}
+
+.summary-grid strong {
+  font-size: 18px;
 }
 
 /* ==========================
@@ -271,7 +273,7 @@ body {
 .athlete-row {
   width: 100%;
   display: grid;
-  grid-template-columns: 44px 1fr 34px;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   padding: 14px;
@@ -280,6 +282,9 @@ body {
   background: #111827;
   color: white;
   text-align: left;
+}
+
+button.athlete-row {
   cursor: pointer;
 }
 
@@ -289,6 +294,7 @@ body {
 }
 
 .athlete-number {
+  min-width: 42px;
   height: 42px;
   display: flex;
   align-items: center;
@@ -300,6 +306,7 @@ body {
 }
 
 .athlete-info {
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -307,11 +314,13 @@ body {
 
 .athlete-info strong {
   font-size: 16px;
+  overflow-wrap: anywhere;
 }
 
 .athlete-info span {
   color: #d1d5db;
   font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
 .athlete-info small {
@@ -379,17 +388,51 @@ body {
   border-radius: 14px;
 }
 
+.score-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-status-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .race-order {
   display: block;
   color: #60a5fa;
   font-size: 15px;
   font-weight: bold;
-  margin-bottom: 6px;
+}
+
+.score-status-badge {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+.score-status-label {
+  color: #d1d5db;
+  font-size: 13px;
+  font-weight: bold;
 }
 
 .sheet-button {
   color: #d1d5db;
   font-weight: bold;
+}
+
+.score-nav-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 
 .score-block {
@@ -461,6 +504,90 @@ body {
 }
 
 /* ==========================
+   FORM GARA
+========================== */
+
+.race-form {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.race-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  color: #d1d5db;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.race-form input,
+.race-form select {
+  width: 100%;
+  padding: 14px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: #111827;
+  color: white;
+  font-size: 16px;
+}
+
+.race-form input:focus,
+.race-form select:focus {
+  outline: none;
+  border-color: #60a5fa;
+}
+
+.race-form input::placeholder {
+  color: #6b7280;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+#race-form-error {
+  margin-top: 4px;
+  padding: 12px;
+  border-radius: 10px;
+  background: #7f1d1d;
+  color: #fee2e2;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+/* ==========================
+   PARTECIPANTI PROVVISORIE
+========================== */
+
+#race-participants-list {
+  margin-top: 14px;
+}
+
+#race-participants-list .athlete-row {
+  cursor: default;
+}
+
+.participant-remove-button {
+  width: auto;
+  min-width: 78px;
+  margin-top: 0;
+  padding: 9px 10px;
+  border-color: #7f1d1d;
+  color: #fca5a5;
+  font-size: 12px;
+}
+
+.participant-remove-button:hover {
+  background: #7f1d1d;
+  color: white;
+}
+
+/* ==========================
    BOTTOM SHEET SCHEDA ATLETA
 ========================== */
 
@@ -482,6 +609,8 @@ body {
 .sheet-content {
   width: 100%;
   max-width: 430px;
+  max-height: 88vh;
+  overflow-y: auto;
   background: #1f2937;
   border-radius: 22px 22px 16px 16px;
   padding: 20px;
@@ -523,8 +652,8 @@ body {
 .new-race-button,
 .ghost-button {
   width: 100%;
-  padding: 16px;
-  border: none;
+  min-height: 48px;
+  padding: 14px 16px;
   border-radius: 12px;
   font-size: 17px;
   cursor: pointer;
@@ -532,17 +661,20 @@ body {
 }
 
 .primary-button {
+  border: none;
   background: #2563eb;
   color: white;
 }
 
 .secondary-button {
+  border: none;
   background: #374151;
   color: white;
 }
 
 .new-race-button {
   margin-top: 22px;
+  border: none;
   background: #22c55e;
   color: white;
   font-weight: bold;
@@ -554,43 +686,37 @@ body {
   border: 1px solid #374151;
 }
 
+button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 /* ==========================
-   FORM NUOVA GARA
+   RESPONSIVE MOBILE
 ========================== */
 
-.race-form {
-  margin-top: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
+@media (max-width: 380px) {
+  .app {
+    padding: 14px;
+  }
 
-.race-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  color: #d1d5db;
-  font-size: 14px;
-  font-weight: bold;
-}
+  .app-header h1 {
+    font-size: 26px;
+  }
 
-.race-form input,
-.race-form select {
-  width: 100%;
-  padding: 14px;
-  border: none;
-  border-radius: 10px;
-  background: #111827;
-  color: white;
-  font-size: 16px;
-}
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
 
-.race-form input::placeholder {
-  color: #6b7280;
-}
+  .athlete-row {
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    gap: 9px;
+    padding: 12px;
+  }
 
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
+  .participant-remove-button {
+    min-width: 64px;
+    padding: 8px;
+    font-size: 11px;
+  }
 }

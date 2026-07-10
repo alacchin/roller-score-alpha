@@ -1,51 +1,164 @@
-// ======================================
-// NAVIGATION.JS
-// Gestisce il cambio schermata dell'app.
-// ======================================
+/*
+==================================================
+GESTIONE SCHERMATE
+==================================================
+*/
 
-const screens = document.querySelectorAll(".screen");
+export function showScreen(
+  screenId
+) {
+  const screens =
+    document.querySelectorAll(
+      ".screen"
+    );
 
-export function showScreen(screenId) {
-  screens.forEach((screen) => {
-    screen.classList.remove("active");
+  screens.forEach(
+    (screen) => {
+      screen.classList.remove(
+        "active"
+      );
+    }
+  );
+
+  const targetScreen =
+    document.getElementById(
+      screenId
+    );
+
+  if (!targetScreen) {
+    console.error(
+      `Schermata non trovata: ${screenId}`
+    );
+
+    return;
+  }
+
+  targetScreen.classList.add(
+    "active"
+  );
+
+  window.scrollTo({
+    top: 0,
+    behavior: "instant"
   });
-
-  const targetScreen = document.getElementById(screenId);
-
-  if (targetScreen) {
-    targetScreen.classList.add("active");
-  }
 }
 
-function connectButton(buttonId, screenId) {
-  const button = document.getElementById(buttonId);
+/*
+==================================================
+COLLEGAMENTO PULSANTI
+==================================================
+*/
 
-  if (button) {
-    button.addEventListener("click", () => {
-      showScreen(screenId);
-    });
+function connectButton(
+  buttonId,
+  screenId
+) {
+  const button =
+    document.getElementById(
+      buttonId
+    );
+
+  if (!button) {
+    return;
   }
+
+  button.addEventListener(
+    "click",
+    () => {
+      showScreen(
+        screenId
+      );
+    }
+  );
 }
+
+/*
+==================================================
+INIZIALIZZAZIONE NAVIGAZIONE
+==================================================
+*/
 
 export function initNavigation() {
-  connectButton("go-new-race", "new-race-screen");
-  connectButton("go-race-dashboard", "race-dashboard-screen");
+  /*
+  HOME
+  */
 
-  connectButton("go-athlete-list", "athlete-list-screen");
+  connectButton(
+    "go-new-race",
+    "new-race-screen"
+  );
 
-  connectButton("go-score-entry-home", "score-entry-screen");
-  connectButton("go-score-entry-dashboard", "score-entry-screen");
-  connectButton("go-score-entry-list", "score-entry-screen");
+  connectButton(
+    "go-race-dashboard",
+    "race-dashboard-screen"
+  );
 
-  connectButton("go-acquire-race", "acquire-race-screen");
-  connectButton("go-manual-race", "manual-race-screen");
+  /*
+  NUOVA GARA
+  */
 
-  connectButton("back-home-1", "home-screen");
-  connectButton("back-home-2", "home-screen");
+  connectButton(
+    "go-acquire-race",
+    "acquire-race-screen"
+  );
 
-  connectButton("back-new-race-1", "new-race-screen");
-  connectButton("back-new-race-2", "new-race-screen");
+  connectButton(
+    "go-manual-race",
+    "manual-race-screen"
+  );
 
-  connectButton("back-dashboard-1", "race-dashboard-screen");
-  connectButton("back-athlete-list-1", "athlete-list-screen");
+  connectButton(
+    "back-home-1",
+    "home-screen"
+  );
+
+  /*
+  ACQUISIZIONE
+  */
+
+  connectButton(
+    "back-new-race-1",
+    "new-race-screen"
+  );
+
+  /*
+  INSERIMENTO MANUALE
+  */
+
+  connectButton(
+    "back-new-race-2",
+    "new-race-screen"
+  );
+
+  /*
+  DASHBOARD
+  */
+
+  connectButton(
+    "go-athlete-list",
+    "athlete-list-screen"
+  );
+
+  connectButton(
+    "back-home-2",
+    "home-screen"
+  );
+
+  /*
+  ELENCO ATLETE
+  */
+
+  connectButton(
+    "back-dashboard-1",
+    "race-dashboard-screen"
+  );
+
+  /*
+  INSERIMENTO PUNTEGGI
+  */
+
+  connectButton(
+    "back-athlete-list-1",
+    "athlete-list-screen"
+  );
 }
