@@ -1,11 +1,13 @@
 /*
 ==================================================
 SERVICE WORKER
-Roller Score — Alpha 0.2
+Roller Score
+Alpha 0.3.1
 ==================================================
 */
 
-const CACHE_NAME = "roller-score-alpha-0.2-v1";
+const CACHE_NAME =
+  "roller-score-alpha-0.3.1";
 
 const FILES_TO_CACHE = [
   "./",
@@ -29,19 +31,19 @@ const FILES_TO_CACHE = [
 
 /*
 ==================================================
-INSTALLAZIONE
+INSTALL
 ==================================================
 */
 
 self.addEventListener(
   "install",
-  (event) => {
+  event => {
     self.skipWaiting();
 
     event.waitUntil(
       caches
         .open(CACHE_NAME)
-        .then((cache) =>
+        .then(cache =>
           cache.addAll(
             FILES_TO_CACHE
           )
@@ -52,33 +54,30 @@ self.addEventListener(
 
 /*
 ==================================================
-ATTIVAZIONE E PULIZIA VECCHIE CACHE
+ACTIVATE
 ==================================================
 */
 
 self.addEventListener(
   "activate",
-  (event) => {
+  event => {
     event.waitUntil(
       Promise.all([
-        caches
-          .keys()
-          .then((cacheNames) =>
-            Promise.all(
-              cacheNames
-                .filter(
-                  (cacheName) =>
-                    cacheName !==
-                    CACHE_NAME
+        caches.keys().then(keys =>
+          Promise.all(
+            keys
+              .filter(
+                key =>
+                  key !==
+                  CACHE_NAME
+              )
+              .map(key =>
+                caches.delete(
+                  key
                 )
-                .map(
-                  (cacheName) =>
-                    caches.delete(
-                      cacheName
-                    )
-                )
-            )
-          ),
+              )
+          )
+        ),
 
         self.clients.claim()
       ])
@@ -88,18 +87,14 @@ self.addEventListener(
 
 /*
 ==================================================
-GESTIONE RICHIESTE
+FETCH
 ==================================================
-
-Strategia:
-- prova prima la rete;
-- se la rete non è disponibile usa la cache;
-- aggiorna la cache con i file più recenti.
 */
 
 self.addEventListener(
   "fetch",
-  (event) => {
+  event => {
+
     if (
       event.request.method !==
       "GET"
@@ -108,41 +103,51 @@ self.addEventListener(
     }
 
     event.respondWith(
+
       fetch(event.request)
-        .then((networkResponse) => {
+
+        .then(response => {
+
           if (
-            !networkResponse ||
-            networkResponse.status !==
-              200
+            !response ||
+            response.status !== 200
           ) {
-            return networkResponse;
+            return response;
           }
 
-          const responseCopy =
-            networkResponse.clone();
+          const copy =
+            response.clone();
 
           caches
             .open(CACHE_NAME)
-            .then((cache) => {
+            .then(cache => {
               cache.put(
                 event.request,
-                responseCopy
+                copy
               );
             });
 
-          return networkResponse;
+          return response;
+
         })
+
         .catch(() =>
+
           caches
-            .match(event.request)
+            .match(
+              event.request
+            )
             .then(
-              (cachedResponse) =>
-                cachedResponse ||
+              cached =>
+                cached ||
                 caches.match(
                   "./index.html"
                 )
             )
+
         )
+
     );
+
   }
 );

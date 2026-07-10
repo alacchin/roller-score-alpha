@@ -2,15 +2,33 @@
 <html lang="it">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
 
     <title>Roller Score</title>
 
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="manifest" href="app.webmanifest" />
+    <link
+      rel="stylesheet"
+      href="styles.css"
+    />
 
-    <meta name="theme-color" content="#111827" />
-    <link rel="apple-touch-icon" href="icon-192.png" />
+    <link
+      rel="manifest"
+      href="app.webmanifest"
+    />
+
+    <meta
+      name="theme-color"
+      content="#111827"
+    />
+
+    <link
+      rel="apple-touch-icon"
+      href="icon-192.png"
+    />
   </head>
 
   <body>
@@ -18,7 +36,10 @@
       <header class="app-header">
         <div>
           <h1>🛼 Roller Score</h1>
-          <p>Artistic Roller Skating</p>
+
+          <p>
+            Artistic Roller Skating
+          </p>
         </div>
 
         <button
@@ -30,20 +51,34 @@
         </button>
       </header>
 
-      <!-- =========================
+      <!-- =====================================
            HOME
-      ========================== -->
+      ====================================== -->
 
-      <section id="home-screen" class="screen active">
+      <section
+        id="home-screen"
+        class="screen active"
+      >
         <section class="card">
-          <p class="label">GARA PROGRAMMATA</p>
+          <p class="label">
+            GARA PROGRAMMATA
+          </p>
 
-          <h2 id="home-race-name">---</h2>
+          <h2 id="home-race-name">
+            ---
+          </h2>
 
-          <p id="home-race-info" class="muted">---</p>
+          <p
+            id="home-race-info"
+            class="muted"
+          >
+            ---
+          </p>
 
           <div class="athlete-box athlete-box-main">
-            <p id="home-favorite-athlete">⭐ La nostra atleta</p>
+            <p id="home-favorite-athlete">
+              ⭐ La nostra atleta
+            </p>
 
             <strong
               id="home-favorite-live-status"
@@ -61,7 +96,9 @@
 
             <div class="info-table">
               <div class="info-row">
-                <span>Numero entrata</span>
+                <span>
+                  Numero entrata
+                </span>
 
                 <strong id="home-favorite-entry-number">
                   --
@@ -69,7 +106,9 @@
               </div>
 
               <div class="info-row">
-                <span>Inizio categoria</span>
+                <span>
+                  Inizio categoria
+                </span>
 
                 <strong id="home-category-start-time">
                   --:--
@@ -77,7 +116,9 @@
               </div>
 
               <div class="info-row">
-                <span>Ingresso stimato</span>
+                <span>
+                  Ingresso stimato
+                </span>
 
                 <strong id="home-favorite-estimated-time">
                   --:--
@@ -112,27 +153,45 @@
         </button>
       </section>
 
-      <!-- =========================
+      <!-- =====================================
            DASHBOARD GARA
-      ========================== -->
+      ====================================== -->
 
-      <section id="race-dashboard-screen" class="screen">
+      <section
+        id="race-dashboard-screen"
+        class="screen"
+      >
         <section class="card">
-          <p class="label">DASHBOARD GARA</p>
+          <p class="label">
+            DASHBOARD GARA
+          </p>
 
-          <h2 id="dashboard-race-name">---</h2>
+          <h2 id="dashboard-race-name">
+            ---
+          </h2>
 
-          <p id="dashboard-race-info" class="muted">---</p>
+          <p
+            id="dashboard-race-info"
+            class="muted"
+          >
+            ---
+          </p>
 
           <div class="status-box">
-            <span>Stato gara</span>
+            <span>
+              Stato gara
+            </span>
 
-            <strong>🟢 Preparata</strong>
+            <strong>
+              🟢 Preparata
+            </strong>
           </div>
 
           <div class="progress-box">
             <div class="progress-header">
-              <span>Avanzamento</span>
+              <span>
+                Avanzamento
+              </span>
 
               <strong id="dashboard-progress-text">
                 0 / 0
@@ -149,7 +208,9 @@
 
           <div class="summary-grid">
             <div>
-              <span>Atlete</span>
+              <span>
+                Atlete
+              </span>
 
               <strong id="dashboard-athletes-count">
                 0
@@ -157,7 +218,9 @@
             </div>
 
             <div>
-              <span>Completate</span>
+              <span>
+                Completate
+              </span>
 
               <strong id="dashboard-completed-count">
                 0
@@ -165,7 +228,9 @@
             </div>
 
             <div>
-              <span>Da fare</span>
+              <span>
+                Da fare
+              </span>
 
               <strong id="dashboard-todo-count">
                 0
@@ -173,7 +238,9 @@
             </div>
 
             <div>
-              <span>Da completare</span>
+              <span>
+                Da completare
+              </span>
 
               <strong id="dashboard-missing-count">
                 0
@@ -182,7 +249,9 @@
           </div>
 
           <div class="athlete-box athlete-box-main">
-            <p>⭐ La nostra atleta</p>
+            <p>
+              ⭐ La nostra atleta
+            </p>
 
             <strong
               id="dashboard-favorite-position"
@@ -193,7 +262,9 @@
 
             <div class="info-table">
               <div class="info-row">
-                <span>Numero entrata</span>
+                <span>
+                  Numero entrata
+                </span>
 
                 <strong id="dashboard-favorite-entry-number">
                   --
@@ -201,7 +272,9 @@
               </div>
 
               <div class="info-row">
-                <span>Inizio categoria</span>
+                <span>
+                  Inizio categoria
+                </span>
 
                 <strong id="dashboard-category-start-time">
                   --:--
@@ -209,7 +282,9 @@
               </div>
 
               <div class="info-row">
-                <span>Ingresso stimato</span>
+                <span>
+                  Ingresso stimato
+                </span>
 
                 <strong id="dashboard-favorite-estimated-time">
                   --:--
@@ -235,6 +310,7 @@
           </button>
 
           <button
+            id="edit-race-button"
             class="ghost-button"
             type="button"
           >
@@ -251,17 +327,27 @@
         </section>
       </section>
 
-      <!-- =========================
+      <!-- =====================================
            ELENCO ATLETE
-      ========================== -->
+      ====================================== -->
 
-      <section id="athlete-list-screen" class="screen">
+      <section
+        id="athlete-list-screen"
+        class="screen"
+      >
         <section class="card">
-          <p class="label">ELENCO ATLETE</p>
+          <p class="label">
+            ELENCO ATLETE
+          </p>
 
-          <h2 id="athlete-list-title">---</h2>
+          <h2 id="athlete-list-title">
+            ---
+          </h2>
 
-          <p id="athlete-list-subtitle" class="muted">
+          <p
+            id="athlete-list-subtitle"
+            class="muted"
+          >
             ---
           </p>
 
@@ -279,10 +365,21 @@
           ></div>
 
           <div class="legend-box">
-            <span>✔ completata</span>
-            <span>▶ in corso</span>
-            <span>○ da fare</span>
-            <span>! da completare</span>
+            <span>
+              ✔ completata
+            </span>
+
+            <span>
+              ▶ in corso
+            </span>
+
+            <span>
+              ○ da fare
+            </span>
+
+            <span>
+              ! da completare
+            </span>
           </div>
 
           <button
@@ -295,13 +392,18 @@
         </section>
       </section>
 
-      <!-- =========================
+      <!-- =====================================
            INSERIMENTO PUNTEGGI
-      ========================== -->
+      ====================================== -->
 
-      <section id="score-entry-screen" class="screen">
+      <section
+        id="score-entry-screen"
+        class="screen"
+      >
         <section class="card">
-          <p class="label">INSERIMENTO PUNTEGGI</p>
+          <p class="label">
+            INSERIMENTO PUNTEGGI
+          </p>
 
           <div class="score-athlete-header">
             <div class="score-header-top">
@@ -375,7 +477,9 @@
           </div>
 
           <div class="score-block">
-            <h3>Tecnico</h3>
+            <h3>
+              Tecnico
+            </h3>
 
             <div class="score-grid">
               <input
@@ -408,7 +512,9 @@
           </div>
 
           <div class="score-block">
-            <h3>Artistico</h3>
+            <h3>
+              Artistico
+            </h3>
 
             <div class="score-grid">
               <input
@@ -478,15 +584,22 @@
         </section>
       </section>
 
-      <!-- =========================
+      <!-- =====================================
            NUOVA GARA
-      ========================== -->
+      ====================================== -->
 
-      <section id="new-race-screen" class="screen">
+      <section
+        id="new-race-screen"
+        class="screen"
+      >
         <section class="card">
-          <p class="label">NUOVA GARA</p>
+          <p class="label">
+            NUOVA GARA
+          </p>
 
-          <h2>Come vuoi crearla?</h2>
+          <h2>
+            Come vuoi crearla?
+          </h2>
 
           <p class="muted">
             Puoi acquisire un ordine di entrata oppure
@@ -519,15 +632,22 @@
         </section>
       </section>
 
-      <!-- =========================
+      <!-- =====================================
            ACQUISIZIONE GARA
-      ========================== -->
+      ====================================== -->
 
-      <section id="acquire-race-screen" class="screen">
+      <section
+        id="acquire-race-screen"
+        class="screen"
+      >
         <section class="card">
-          <p class="label">ACQUISISCI GARA</p>
+          <p class="label">
+            ACQUISISCI GARA
+          </p>
 
-          <h2>Foto, screenshot o PDF</h2>
+          <h2>
+            Foto, screenshot o PDF
+          </h2>
 
           <p class="muted">
             Questa funzione verrà collegata al motore OCR
@@ -558,27 +678,53 @@
         </section>
       </section>
 
-      <!-- =========================
-           CREAZIONE GARA MANUALE
-      ========================== -->
+      <!-- =====================================
+           CREAZIONE / MODIFICA GARA
+      ====================================== -->
 
-      <section id="manual-race-screen" class="screen">
+      <section
+        id="manual-race-screen"
+        class="screen"
+      >
         <section class="card">
-          <p class="label">
+          <p
+            id="race-form-label"
+            class="label"
+          >
             INSERIMENTO MANUALE
           </p>
 
-          <h2>Crea gara</h2>
+          <h2 id="race-form-title">
+            Crea gara
+          </h2>
 
-          <p class="muted">
+          <p
+            id="race-form-description"
+            class="muted"
+          >
             Compila i dati della competizione e aggiungi
             le partecipanti.
           </p>
+
+          <div
+            id="race-edit-warning"
+            class="edit-warning"
+            hidden
+          >
+            Stai modificando una gara già salvata.
+            I punteggi eventualmente presenti verranno mantenuti.
+          </div>
 
           <form
             id="manual-race-form"
             class="race-form"
           >
+            <input
+              id="editing-race-id"
+              type="hidden"
+              value=""
+            />
+
             <label>
               Nome gara
 
@@ -614,13 +760,25 @@
               Federazione
 
               <select id="race-federation-input">
-                <option value="AICS">AICS</option>
-                <option value="FISR">FISR</option>
-                <option value="PGS">PGS</option>
+                <option value="AICS">
+                  AICS
+                </option>
+
+                <option value="FISR">
+                  FISR
+                </option>
+
+                <option value="PGS">
+                  PGS
+                </option>
+
                 <option value="World Skate">
                   World Skate
                 </option>
-                <option value="Altro">Altro</option>
+
+                <option value="Altro">
+                  Altro
+                </option>
               </select>
             </label>
 
@@ -686,14 +844,14 @@
               </label>
             </div>
 
-            <!-- PARTECIPANTI -->
-
             <div class="sheet-section">
               <p class="label">
                 PARTECIPANTI
               </p>
 
-              <h3>Aggiungi atleta</h3>
+              <h3>
+                Aggiungi atleta
+              </h3>
 
               <p class="small-muted">
                 Il numero di entrata viene salvato solamente
@@ -788,6 +946,15 @@
             </button>
 
             <button
+              id="cancel-race-edit-button"
+              class="ghost-button"
+              type="button"
+              hidden
+            >
+              Annulla modifiche
+            </button>
+
+            <button
               id="back-new-race-2"
               class="ghost-button"
               type="button"
@@ -799,16 +966,17 @@
       </section>
     </main>
 
-    <!-- =========================
+    <!-- =====================================
          SCHEDA ATLETA
-    ========================== -->
+    ====================================== -->
 
     <div
       id="athlete-sheet"
       class="bottom-sheet"
     >
       <div class="sheet-content">
-        <div class="sheet-handle"></div>
+        <div class="sheet-handle">
+        </div>
 
         <p class="label">
           SCHEDA ATLETA
@@ -826,14 +994,18 @@
         </p>
 
         <div class="sheet-section">
-          <h3>Note precedenti</h3>
+          <h3>
+            Note precedenti
+          </h3>
 
           <div id="sheet-athlete-notes">
           </div>
         </div>
 
         <div class="sheet-section">
-          <h3>Ultime gare</h3>
+          <h3>
+            Ultime gare
+          </h3>
 
           <div id="sheet-athlete-results">
           </div>
