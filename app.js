@@ -223,14 +223,23 @@ function connectRaceButtons() {
 }
 
 if (backHomeFromRaceListButton) {
-    backHomeFromRaceListButton.addEventListener(
-        "click",
-        () => {
-            showScreen(
-                "home-screen"
-            );
+  backHomeFromRaceListButton.addEventListener(
+    "click",
+    () => {
+      if (window.history.length > 1) {
+        window.history.back();
+        return;
+      }
+
+      showScreen(
+        "home-screen",
+        {
+          addToHistory: false,
+          replaceHistory: true
         }
-    );
+      );
+    }
+  );
 }
 
   if (newRaceButton) {
