@@ -146,6 +146,16 @@ function connectRaceButtons() {
       "go-score-entry-dashboard"
     );
 
+  const raceListButton =
+    document.getElementById(
+      "go-race-list"
+    );
+
+  const backHomeFromRaceListButton =
+    document.getElementById(
+      "back-home-from-race-list"
+    );
+
   const newRaceButton =
     document.getElementById(
       "go-new-race"
@@ -200,6 +210,28 @@ function connectRaceButtons() {
       startRace
     );
   }
+
+  if (raceListButton) {
+    raceListButton.addEventListener(
+        "click",
+        () => {
+            showScreen(
+                "race-list-screen"
+            );
+        }
+    );
+}
+
+if (backHomeFromRaceListButton) {
+    backHomeFromRaceListButton.addEventListener(
+        "click",
+        () => {
+            showScreen(
+                "home-screen"
+            );
+        }
+    );
+}
 
   if (newRaceButton) {
     newRaceButton.addEventListener(

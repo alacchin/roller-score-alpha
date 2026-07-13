@@ -7,7 +7,7 @@ Alpha 0.3.1
 */
 
 const CACHE_NAME =
-  "roller-score-alpha-0.3.1";
+  "roller-score-alpha-0.4.1";
 
 const FILES_TO_CACHE = [
   "./",

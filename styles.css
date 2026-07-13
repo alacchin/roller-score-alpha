@@ -661,6 +661,20 @@ button.athlete-row {
   margin-top: 6px;
   line-height: 1.35;
 }
+/* ==========================
+   ELENCO GARE
+========================== */
+
+.race-list-empty {
+  margin-top: 20px;
+  padding: 20px;
+  border: 1px dashed #4b5563;
+  border-radius: 12px;
+  background: #111827;
+  color: #9ca3af;
+  text-align: center;
+  line-height: 1.4;
+}
 
 /* ==========================
    PULSANTI
