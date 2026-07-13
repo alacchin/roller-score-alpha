@@ -13,6 +13,10 @@
   color-scheme: dark;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 body {
   background: #111827;
   color: white;
@@ -116,6 +120,21 @@ textarea {
   font-size: 13px;
   margin-top: 8px;
   line-height: 1.4;
+}
+
+/* ==========================
+   AVVISO MODIFICA GARA
+========================== */
+
+.edit-warning {
+  margin-top: 18px;
+  padding: 14px;
+  border: 1px solid #f59e0b;
+  border-radius: 12px;
+  background: #451a03;
+  color: #fde68a;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 /* ==========================
@@ -684,6 +703,15 @@ button.athlete-row {
   background: transparent;
   color: #9ca3af;
   border: 1px solid #374151;
+}
+
+#cancel-race-edit-button {
+  border-color: #f59e0b;
+  color: #fde68a;
+}
+
+#cancel-race-edit-button:hover {
+  background: #451a03;
 }
 
 button:disabled {

@@ -1,29 +1,34 @@
 import {
   normalizeAthlete,
-  normalizeRace
+  normalizeRace,
+  normalizeParticipant
 } from "./models.js";
 
 /*
 ==================================================
 STATO GLOBALE DELL'APP
+Roller Score — Alpha 0.3.1
 ==================================================
 */
 
 export const appState = {
-  version: "0.2",
+  version: "0.3.1",
 
   races: [],
   athletes: [],
 
   settings: {
     theme: "dark",
-    version: "0.2"
+    version: "0.3.1"
   },
 
   currentRaceId: null,
   currentParticipantId: null,
 
-  draftParticipants: []
+  draftParticipants: [],
+
+  raceFormMode: "create",
+  editingRaceId: null
 };
 
 /*
@@ -49,7 +54,7 @@ export function setInitialState({
   appState.settings =
     settings || {
       theme: "dark",
-      version: "0.2"
+      version: "0.3.1"
     };
 
   const validCurrentRaceId =
@@ -74,6 +79,12 @@ export function setInitialState({
     startingParticipant?.id || null;
 
   appState.draftParticipants = [];
+
+  appState.raceFormMode =
+    "create";
+
+  appState.editingRaceId =
+    null;
 }
 
 /*
@@ -88,6 +99,17 @@ export function getCurrentRace() {
       (race) =>
         race.id ===
         appState.currentRaceId
+    ) || null
+  );
+}
+
+export function getRaceById(
+  raceId
+) {
+  return (
+    appState.races.find(
+      (race) =>
+        race.id === raceId
     ) || null
   );
 }
@@ -125,10 +147,14 @@ export function addRaceToState(
     return false;
   }
 
+  const normalizedRace =
+    normalizeRace(race);
+
   const existingRaceIndex =
     appState.races.findIndex(
       (item) =>
-        item.id === race.id
+        item.id ===
+        normalizedRace.id
     );
 
   if (
@@ -136,12 +162,51 @@ export function addRaceToState(
   ) {
     appState.races[
       existingRaceIndex
-    ] = normalizeRace(race);
+    ] = normalizedRace;
   } else {
     appState.races.push(
-      normalizeRace(race)
+      normalizedRace
     );
   }
+
+  return true;
+}
+
+export function updateRaceInState(
+  raceId,
+  changes = {}
+) {
+  const raceIndex =
+    appState.races.findIndex(
+      (race) =>
+        race.id === raceId
+    );
+
+  if (
+    raceIndex < 0
+  ) {
+    return false;
+  }
+
+  const currentRace =
+    appState.races[
+      raceIndex
+    ];
+
+  const updatedRace =
+    normalizeRace({
+      ...currentRace,
+      ...changes,
+      id: currentRace.id,
+      createdAt:
+        currentRace.createdAt,
+      updatedAt:
+        new Date().toISOString()
+    });
+
+  appState.races[
+    raceIndex
+  ] = updatedRace;
 
   return true;
 }
@@ -167,6 +232,97 @@ export function removeRaceFromState(
       nextRaceId
     );
   }
+
+  if (
+    appState.editingRaceId ===
+    raceId
+  ) {
+    exitRaceEditMode();
+  }
+}
+
+/*
+==================================================
+MODALITÀ CREAZIONE / MODIFICA GARA
+==================================================
+*/
+
+export function getRaceFormMode() {
+  return appState.raceFormMode;
+}
+
+export function isRaceEditMode() {
+  return (
+    appState.raceFormMode ===
+      "edit" &&
+    Boolean(
+      appState.editingRaceId
+    )
+  );
+}
+
+export function getEditingRaceId() {
+  return appState.editingRaceId;
+}
+
+export function getEditingRace() {
+  if (
+    !isRaceEditMode()
+  ) {
+    return null;
+  }
+
+  return getRaceById(
+    appState.editingRaceId
+  );
+}
+
+export function enterRaceCreateMode() {
+  appState.raceFormMode =
+    "create";
+
+  appState.editingRaceId =
+    null;
+
+  clearDraftParticipants();
+}
+
+export function enterRaceEditMode(
+  raceId
+) {
+  const race =
+    getRaceById(
+      raceId
+    );
+
+  if (!race) {
+    return false;
+  }
+
+  appState.raceFormMode =
+    "edit";
+
+  appState.editingRaceId =
+    race.id;
+
+  appState.draftParticipants =
+    getParticipants(race).map(
+      cloneParticipant
+    );
+
+  sortDraftParticipants();
+
+  return true;
+}
+
+export function exitRaceEditMode() {
+  appState.raceFormMode =
+    "create";
+
+  appState.editingRaceId =
+    null;
+
+  clearDraftParticipants();
 }
 
 /*
@@ -300,12 +456,25 @@ export function updateParticipantInCurrentRace(
 
   race.participants[
     participantIndex
-  ] = {
+  ] = normalizeParticipant({
     ...race.participants[
       participantIndex
     ],
     ...changes
-  };
+  });
+
+  race.participants.sort(
+    (
+      firstParticipant,
+      secondParticipant
+    ) =>
+      Number(
+        firstParticipant.entryNumber
+      ) -
+      Number(
+        secondParticipant.entryNumber
+      )
+  );
 
   race.updatedAt =
     new Date().toISOString();
@@ -326,10 +495,16 @@ export function addAthleteToState(
     return false;
   }
 
+  const normalizedAthlete =
+    normalizeAthlete(
+      athlete
+    );
+
   const existingAthleteIndex =
     appState.athletes.findIndex(
       (item) =>
-        item.id === athlete.id
+        item.id ===
+        normalizedAthlete.id
     );
 
   if (
@@ -337,12 +512,10 @@ export function addAthleteToState(
   ) {
     appState.athletes[
       existingAthleteIndex
-    ] = normalizeAthlete(
-      athlete
-    );
+    ] = normalizedAthlete;
   } else {
     appState.athletes.push(
-      normalizeAthlete(athlete)
+      normalizedAthlete
     );
   }
 
@@ -365,37 +538,25 @@ export function findAthleteInState(
   club = ""
 ) {
   const normalizedName =
-    String(name || "")
-      .trim()
-      .toLocaleLowerCase(
-        "it-IT"
-      );
+    normalizeSearchValue(
+      name
+    );
 
   const normalizedClub =
-    String(club || "")
-      .trim()
-      .toLocaleLowerCase(
-        "it-IT"
-      );
+    normalizeSearchValue(
+      club
+    );
 
   return (
     appState.athletes.find(
       (athlete) =>
-        String(
-          athlete.name || ""
-        )
-          .trim()
-          .toLocaleLowerCase(
-            "it-IT"
-          ) ===
+        normalizeSearchValue(
+          athlete.name
+        ) ===
           normalizedName &&
-        String(
-          athlete.club || ""
-        )
-          .trim()
-          .toLocaleLowerCase(
-            "it-IT"
-          ) ===
+        normalizeSearchValue(
+          athlete.club
+        ) ===
           normalizedClub
     ) || null
   );
@@ -411,6 +572,19 @@ export function getDraftParticipants() {
   return (
     appState.draftParticipants
   );
+}
+
+export function setDraftParticipants(
+  participants = []
+) {
+  appState.draftParticipants =
+    Array.isArray(participants)
+      ? participants.map(
+          cloneParticipant
+        )
+      : [];
+
+  sortDraftParticipants();
 }
 
 export function addDraftParticipant(
@@ -442,18 +616,83 @@ export function addDraftParticipant(
   if (
     participant.isFavorite
   ) {
-    appState.draftParticipants =
-      appState.draftParticipants.map(
-        (item) => ({
-          ...item,
-          isFavorite: false
-        })
-      );
+    clearFavoriteFromDraftParticipants();
   }
 
   appState.draftParticipants.push(
-    participant
+    cloneParticipant(
+      participant
+    )
   );
+
+  sortDraftParticipants();
+
+  return true;
+}
+
+export function updateDraftParticipant(
+  participantId,
+  changes = {}
+) {
+  const participantIndex =
+    appState.draftParticipants.findIndex(
+      (participant) =>
+        participant.id ===
+        participantId
+    );
+
+  if (
+    participantIndex < 0
+  ) {
+    return false;
+  }
+
+  const nextEntryNumber =
+    Number(
+      changes.entryNumber ??
+      appState.draftParticipants[
+        participantIndex
+      ].entryNumber
+    );
+
+  const entryAlreadyUsed =
+    appState.draftParticipants.some(
+      (participant, index) =>
+        index !==
+          participantIndex &&
+        Number(
+          participant.entryNumber
+        ) ===
+          nextEntryNumber
+    );
+
+  if (
+    entryAlreadyUsed
+  ) {
+    return false;
+  }
+
+  if (
+    changes.isFavorite ===
+    true
+  ) {
+    clearFavoriteFromDraftParticipants(
+      participantId
+    );
+  }
+
+  appState.draftParticipants[
+    participantIndex
+  ] = normalizeParticipant({
+    ...appState.draftParticipants[
+      participantIndex
+    ],
+    ...changes,
+    entryNumber:
+      nextEntryNumber,
+    order:
+      nextEntryNumber
+  });
 
   sortDraftParticipants();
 
@@ -488,6 +727,27 @@ export function sortDraftParticipants() {
         secondParticipant.entryNumber
       )
   );
+}
+
+function clearFavoriteFromDraftParticipants(
+  excludedParticipantId = null
+) {
+  appState.draftParticipants =
+    appState.draftParticipants.map(
+      (participant) => {
+        if (
+          participant.id ===
+          excludedParticipantId
+        ) {
+          return participant;
+        }
+
+        return {
+          ...participant,
+          isFavorite: false
+        };
+      }
+    );
 }
 
 /*
@@ -540,4 +800,79 @@ export function getRaceStatistics(
     missing,
     todo
   };
+}
+
+/*
+==================================================
+FUNZIONI DI SUPPORTO
+==================================================
+*/
+
+function cloneParticipant(
+  participant
+) {
+  return normalizeParticipant({
+    ...participant,
+
+    notes:
+      Array.isArray(
+        participant.notes
+      )
+        ? [
+            ...participant.notes
+          ]
+        : [],
+
+    previousResults:
+      Array.isArray(
+        participant.previousResults
+      )
+        ? [
+            ...participant.previousResults
+          ]
+        : [],
+
+    scores:
+      participant.scores
+        ? {
+            ...participant.scores,
+
+            technical:
+              Array.isArray(
+                participant.scores
+                  .technical
+              )
+                ? [
+                    ...participant
+                      .scores
+                      .technical
+                  ]
+                : [],
+
+            artistic:
+              Array.isArray(
+                participant.scores
+                  .artistic
+              )
+                ? [
+                    ...participant
+                      .scores
+                      .artistic
+                  ]
+                : []
+          }
+        : null
+  });
+}
+
+function normalizeSearchValue(
+  value
+) {
+  return String(
+    value || ""
+  )
+    .trim()
+    .toLocaleLowerCase(
+      "it-IT"
+    );
 }

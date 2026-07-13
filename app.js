@@ -20,12 +20,19 @@ import {
   getCurrentRace,
   setCurrentRaceId,
   addRaceToState,
+  updateRaceInState,
   addAthleteToState,
   findAthleteInState,
   addDraftParticipant,
   removeDraftParticipant,
   clearDraftParticipants,
-  getDraftParticipants
+  getDraftParticipants,
+  enterRaceCreateMode,
+  enterRaceEditMode,
+  exitRaceEditMode,
+  isRaceEditMode,
+  getEditingRaceId,
+  getEditingRace
 } from "./state.js";
 
 import {
@@ -55,6 +62,7 @@ import {
 /*
 ==================================================
 AVVIO APP
+Roller Score — Alpha 0.3.1
 ==================================================
 */
 
@@ -96,6 +104,7 @@ function initializeApp() {
 
   populateAthleteArchive();
   renderDraftParticipants();
+  updateRaceFormModeUI();
   render();
 }
 
@@ -142,6 +151,21 @@ function connectRaceButtons() {
       "go-new-race"
     );
 
+  const manualRaceButton =
+    document.getElementById(
+      "go-manual-race"
+    );
+
+  const editRaceButton =
+    document.getElementById(
+      "edit-race-button"
+    );
+
+  const cancelEditButton =
+    document.getElementById(
+      "cancel-race-edit-button"
+    );
+
   if (openRaceButton) {
     openRaceButton.addEventListener(
       "click",
@@ -166,18 +190,14 @@ function connectRaceButtons() {
   if (startFromHomeButton) {
     startFromHomeButton.addEventListener(
       "click",
-      () => {
-        startRace();
-      }
+      startRace
     );
   }
 
   if (startFromDashboardButton) {
     startFromDashboardButton.addEventListener(
       "click",
-      () => {
-        startRace();
-      }
+      startRace
     );
   }
 
@@ -185,9 +205,226 @@ function connectRaceButtons() {
     newRaceButton.addEventListener(
       "click",
       () => {
-        resetRaceForm();
+        prepareNewRaceForm();
       }
     );
+  }
+
+  if (manualRaceButton) {
+    manualRaceButton.addEventListener(
+      "click",
+      () => {
+        prepareNewRaceForm();
+
+        showScreen(
+          "manual-race-screen"
+        );
+      }
+    );
+  }
+
+  if (editRaceButton) {
+    editRaceButton.addEventListener(
+      "click",
+      () => {
+        openCurrentRaceForEditing();
+      }
+    );
+  }
+
+  if (cancelEditButton) {
+    cancelEditButton.addEventListener(
+      "click",
+      () => {
+        cancelRaceEditing();
+      }
+    );
+  }
+}
+
+/*
+==================================================
+APERTURA MODIFICA GARA
+==================================================
+*/
+
+function openCurrentRaceForEditing() {
+  const currentRace =
+    getCurrentRace();
+
+  if (!currentRace) {
+    alert(
+      "Non è presente una gara da modificare."
+    );
+
+    return;
+  }
+
+  const enteredEditMode =
+    enterRaceEditMode(
+      currentRace.id
+    );
+
+  if (!enteredEditMode) {
+    alert(
+      "Non è stato possibile aprire la gara in modifica."
+    );
+
+    return;
+  }
+
+  populateRaceForm(
+    currentRace
+  );
+
+  updateRaceFormModeUI();
+  renderDraftParticipants();
+
+  showScreen(
+    "manual-race-screen"
+  );
+}
+
+function populateRaceForm(
+  race
+) {
+  setInputValue(
+    "editing-race-id",
+    race.id
+  );
+
+  setInputValue(
+    "race-name-input",
+    race.name
+  );
+
+  setInputValue(
+    "race-date-input",
+    race.date
+  );
+
+  setInputValue(
+    "race-location-input",
+    race.location
+  );
+
+  setInputValue(
+    "race-federation-input",
+    race.federation
+  );
+
+  setInputValue(
+    "race-discipline-input",
+    race.discipline
+  );
+
+  setInputValue(
+    "race-category-input",
+    race.category
+  );
+
+  setInputValue(
+    "race-start-time-input",
+    race.startTime
+  );
+
+  setInputValue(
+    "race-minutes-input",
+    race.minutesPerAthlete || 4
+  );
+
+  clearParticipantInputs();
+  hideRaceFormError();
+}
+
+/*
+==================================================
+MODALITÀ FORM
+==================================================
+*/
+
+function prepareNewRaceForm() {
+  enterRaceCreateMode();
+
+  resetRaceFormFields();
+  updateRaceFormModeUI();
+  renderDraftParticipants();
+}
+
+function cancelRaceEditing() {
+  exitRaceEditMode();
+
+  resetRaceFormFields();
+  updateRaceFormModeUI();
+  renderDraftParticipants();
+
+  render();
+
+  showScreen(
+    "race-dashboard-screen"
+  );
+}
+
+function updateRaceFormModeUI() {
+  const editing =
+    isRaceEditMode();
+
+  setTextById(
+    "race-form-label",
+    editing
+      ? "MODIFICA GARA"
+      : "INSERIMENTO MANUALE"
+  );
+
+  setTextById(
+    "race-form-title",
+    editing
+      ? "Modifica gara"
+      : "Crea gara"
+  );
+
+  setTextById(
+    "race-form-description",
+    editing
+      ? "Aggiorna i dati della competizione e le partecipanti."
+      : "Compila i dati della competizione e aggiungi le partecipanti."
+  );
+
+  setTextById(
+    "create-race-button",
+    editing
+      ? "💾 Salva modifiche"
+      : "💾 Crea gara"
+  );
+
+  const warning =
+    document.getElementById(
+      "race-edit-warning"
+    );
+
+  const cancelButton =
+    document.getElementById(
+      "cancel-race-edit-button"
+    );
+
+  const backButton =
+    document.getElementById(
+      "back-new-race-2"
+    );
+
+  if (warning) {
+    warning.hidden =
+      !editing;
+  }
+
+  if (cancelButton) {
+    cancelButton.hidden =
+      !editing;
+  }
+
+  if (backButton) {
+    backButton.hidden =
+      editing;
   }
 }
 
@@ -198,47 +435,32 @@ PULSANTI INSERIMENTO PUNTEGGI
 */
 
 function connectScoreButtons() {
-  const previousButton =
-    document.getElementById(
+  document
+    .getElementById(
       "previous-athlete"
+    )
+    ?.addEventListener(
+      "click",
+      goToPreviousParticipant
     );
 
-  const nextButton =
-    document.getElementById(
+  document
+    .getElementById(
       "next-athlete"
+    )
+    ?.addEventListener(
+      "click",
+      goToNextParticipant
     );
 
-  const saveButton =
-    document.getElementById(
+  document
+    .getElementById(
       "save-and-next-athlete"
-    );
-
-  if (previousButton) {
-    previousButton.addEventListener(
+    )
+    ?.addEventListener(
       "click",
-      () => {
-        goToPreviousParticipant();
-      }
+      saveCurrentScore
     );
-  }
-
-  if (nextButton) {
-    nextButton.addEventListener(
-      "click",
-      () => {
-        goToNextParticipant();
-      }
-    );
-  }
-
-  if (saveButton) {
-    saveButton.addEventListener(
-      "click",
-      () => {
-        saveCurrentScore();
-      }
-    );
-  }
 }
 
 /*
@@ -279,7 +501,7 @@ function connectAthleteList() {
 
 /*
 ==================================================
-FORM CREAZIONE GARA
+FORM CREAZIONE / MODIFICA GARA
 ==================================================
 */
 
@@ -298,125 +520,139 @@ function connectRaceForm() {
     (event) => {
       event.preventDefault();
 
-      createRealRace();
+      saveRaceForm();
     }
   );
 }
 
-function createRealRace() {
+function saveRaceForm() {
   hideRaceFormError();
 
-  const raceName =
-    getInputValue(
-      "race-name-input"
+  const formData =
+    readRaceFormData();
+
+  const validationError =
+    validateRaceForm(
+      formData
     );
 
-  const raceDate =
-    getInputValue(
-      "race-date-input"
+  if (validationError) {
+    showRaceFormError(
+      validationError
     );
 
-  const raceLocation =
-    getInputValue(
-      "race-location-input"
-    );
+    return;
+  }
 
-  const federation =
-    getInputValue(
-      "race-federation-input"
+  if (isRaceEditMode()) {
+    updateExistingRace(
+      formData
     );
-
-  const discipline =
-    getInputValue(
-      "race-discipline-input"
+  } else {
+    createNewRace(
+      formData
     );
+  }
+}
 
-  const category =
-    getInputValue(
-      "race-category-input"
-    );
-
-  const startTime =
-    getInputValue(
-      "race-start-time-input"
-    );
-
-  const minutesPerAthlete =
-    Number(
+function readRaceFormData() {
+  return {
+    name:
       getInputValue(
-        "race-minutes-input"
-      )
-    );
+        "race-name-input"
+      ),
 
-  const participants =
-    getDraftParticipants();
+    date:
+      getInputValue(
+        "race-date-input"
+      ),
 
-  if (!raceName) {
-    showRaceFormError(
-      "Inserisci il nome della gara."
-    );
+    location:
+      getInputValue(
+        "race-location-input"
+      ),
 
-    return;
+    federation:
+      getInputValue(
+        "race-federation-input"
+      ),
+
+    discipline:
+      getInputValue(
+        "race-discipline-input"
+      ),
+
+    category:
+      getInputValue(
+        "race-category-input"
+      ),
+
+    startTime:
+      getInputValue(
+        "race-start-time-input"
+      ),
+
+    minutesPerAthlete:
+      Number(
+        getInputValue(
+          "race-minutes-input"
+        )
+      ),
+
+    participants:
+      getDraftParticipants()
+  };
+}
+
+function validateRaceForm(
+  formData
+) {
+  if (!formData.name) {
+    return "Inserisci il nome della gara.";
   }
 
-  if (!raceDate) {
-    showRaceFormError(
-      "Inserisci la data della gara."
-    );
-
-    return;
+  if (!formData.date) {
+    return "Inserisci la data della gara.";
   }
 
-  if (!category) {
-    showRaceFormError(
-      "Inserisci la categoria."
-    );
-
-    return;
+  if (!formData.category) {
+    return "Inserisci la categoria.";
   }
 
-  if (!startTime) {
-    showRaceFormError(
-      "Inserisci l'orario di inizio della categoria."
-    );
-
-    return;
+  if (!formData.startTime) {
+    return "Inserisci l'orario di inizio della categoria.";
   }
 
   if (
     !Number.isFinite(
-      minutesPerAthlete
+      formData.minutesPerAthlete
     ) ||
-    minutesPerAthlete < 1
+    formData.minutesPerAthlete < 1
   ) {
-    showRaceFormError(
-      "Inserisci una durata valida per atleta."
-    );
-
-    return;
+    return "Inserisci una durata valida per atleta.";
   }
 
   if (
-    participants.length === 0
+    formData.participants.length === 0
   ) {
-    showRaceFormError(
-      "Aggiungi almeno una partecipante."
-    );
-
-    return;
+    return "Aggiungi almeno una partecipante.";
   }
 
+  return null;
+}
+
+/*
+==================================================
+CREAZIONE NUOVA GARA
+==================================================
+*/
+
+function createNewRace(
+  formData
+) {
   const newRace =
     createRace({
-      name: raceName,
-      date: raceDate,
-      location: raceLocation,
-      federation,
-      discipline,
-      category,
-      startTime,
-      minutesPerAthlete,
-      participants
+      ...formData
     });
 
   addRaceToState(
@@ -435,13 +671,91 @@ function createRealRace() {
     newRace.id
   );
 
-  clearDraftParticipants();
+  finishRaceForm(
+    "race-dashboard-screen"
+  );
+}
 
-  resetRaceForm();
+/*
+==================================================
+SALVATAGGIO MODIFICHE GARA
+==================================================
+*/
+
+function updateExistingRace(
+  formData
+) {
+  const editingRaceId =
+    getEditingRaceId();
+
+  const editingRace =
+    getEditingRace();
+
+  if (
+    !editingRaceId ||
+    !editingRace
+  ) {
+    showRaceFormError(
+      "La gara da modificare non è più disponibile."
+    );
+
+    return;
+  }
+
+  const updated =
+    updateRaceInState(
+      editingRaceId,
+      {
+        ...formData,
+        participants:
+          formData.participants
+      }
+    );
+
+  if (!updated) {
+    showRaceFormError(
+      "Non è stato possibile salvare le modifiche."
+    );
+
+    return;
+  }
+
+  saveRaces(
+    appState.races
+  );
+
+  setCurrentRaceId(
+    editingRaceId
+  );
+
+  setActiveRaceId(
+    editingRaceId
+  );
+
+  finishRaceForm(
+    "race-dashboard-screen"
+  );
+}
+
+/*
+==================================================
+CHIUSURA FORM
+==================================================
+*/
+
+function finishRaceForm(
+  targetScreen
+) {
+  exitRaceEditMode();
+
+  resetRaceFormFields();
+  updateRaceFormModeUI();
+  renderDraftParticipants();
+
   render();
 
   showScreen(
-    "race-dashboard-screen"
+    targetScreen
   );
 }
 
@@ -465,9 +779,7 @@ function connectParticipantForm() {
   if (addParticipantButton) {
     addParticipantButton.addEventListener(
       "click",
-      () => {
-        createDraftParticipant();
-      }
+      createDraftParticipant
     );
   }
 
@@ -484,9 +796,31 @@ function connectParticipantForm() {
           return;
         }
 
-        removeDraftParticipant(
+        const participantId =
           removeButton.dataset
-            .removeParticipant
+            .removeParticipant;
+
+        const participant =
+          getDraftParticipants().find(
+            (item) =>
+              item.id ===
+              participantId
+          );
+
+        const confirmed =
+          confirm(
+            `Rimuovere ${
+              participant?.name ||
+              "questa partecipante"
+            } dalla gara?`
+          );
+
+        if (!confirmed) {
+          return;
+        }
+
+        removeDraftParticipant(
+          participantId
         );
 
         renderDraftParticipants();
@@ -546,7 +880,8 @@ function createDraftParticipant() {
       (participant) =>
         Number(
           participant.entryNumber
-        ) === entryNumber
+        ) ===
+        entryNumber
     );
 
   if (existingEntryNumber) {
@@ -699,20 +1034,16 @@ function connectAthleteArchiveSelection() {
     "change",
     () => {
       const selectedName =
-        nameInput.value
-          .trim()
-          .toLocaleLowerCase(
-            "it-IT"
-          );
+        normalizeSearchValue(
+          nameInput.value
+        );
 
       const selectedAthlete =
         appState.athletes.find(
           (athlete) =>
-            athlete.name
-              .trim()
-              .toLocaleLowerCase(
-                "it-IT"
-              ) ===
+            normalizeSearchValue(
+              athlete.name
+            ) ===
             selectedName
         );
 
@@ -720,15 +1051,10 @@ function connectAthleteArchiveSelection() {
         return;
       }
 
-      const clubInput =
-        document.getElementById(
-          "participant-club-input"
-        );
-
-      if (clubInput) {
-        clubInput.value =
-          selectedAthlete.club;
-      }
+      setInputValue(
+        "participant-club-input",
+        selectedAthlete.club
+      );
     }
   );
 }
@@ -814,6 +1140,16 @@ function renderDraftParticipants() {
                 "Società non indicata"
             )}
           </span>
+
+          ${
+            participant.scores
+              ? `
+                <small class="notes-active">
+                  Punteggi già presenti
+                </small>
+              `
+              : ""
+          }
         </div>
 
         <button
@@ -834,7 +1170,7 @@ function renderDraftParticipants() {
 
 /*
 ==================================================
-RICERCA ATLETE DELLA GARA
+RICERCA ATLETE
 ==================================================
 */
 
@@ -852,11 +1188,9 @@ function connectAthleteSearch() {
     "input",
     () => {
       const searchValue =
-        searchInput.value
-          .trim()
-          .toLocaleLowerCase(
-            "it-IT"
-          );
+        normalizeSearchValue(
+          searchInput.value
+        );
 
       document
         .querySelectorAll(
@@ -865,10 +1199,9 @@ function connectAthleteSearch() {
         .forEach(
           (row) => {
             const rowText =
-              row.textContent
-                .toLocaleLowerCase(
-                  "it-IT"
-                );
+              normalizeSearchValue(
+                row.textContent
+              );
 
             row.style.display =
               rowText.includes(
@@ -888,7 +1221,7 @@ RESET FORM
 ==================================================
 */
 
-function resetRaceForm() {
+function resetRaceFormFields() {
   const form =
     document.getElementById(
       "manual-race-form"
@@ -898,19 +1231,19 @@ function resetRaceForm() {
     form.reset();
   }
 
-  const minutesInput =
-    document.getElementById(
-      "race-minutes-input"
-    );
+  setInputValue(
+    "editing-race-id",
+    ""
+  );
 
-  if (minutesInput) {
-    minutesInput.value = "4";
-  }
+  setInputValue(
+    "race-minutes-input",
+    "4"
+  );
 
   clearDraftParticipants();
   clearParticipantInputs();
   hideRaceFormError();
-  renderDraftParticipants();
 }
 
 function clearParticipantInputs() {
@@ -933,12 +1266,6 @@ function clearParticipantInputs() {
     "participant-favorite-input",
     "false"
   );
-
-  document
-    .getElementById(
-      "participant-name-input"
-    )
-    ?.focus();
 }
 
 /*
@@ -1015,8 +1342,35 @@ function setInputValue(
 
   if (element) {
     element.value =
-      value;
+      value ?? "";
   }
+}
+
+function setTextById(
+  elementId,
+  value
+) {
+  const element =
+    document.getElementById(
+      elementId
+    );
+
+  if (element) {
+    element.textContent =
+      value ?? "";
+  }
+}
+
+function normalizeSearchValue(
+  value
+) {
+  return String(
+    value || ""
+  )
+    .trim()
+    .toLocaleLowerCase(
+      "it-IT"
+    );
 }
 
 function escapeHtml(
