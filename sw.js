@@ -2,12 +2,12 @@
 ==================================================
 SERVICE WORKER
 Roller Score
-Alpha 0.3.1
+Alpha 0.4.3
 ==================================================
 */
 
 const CACHE_NAME =
-  "roller-score-alpha-0.4.2";
+  "roller-score-alpha-0.4.3";
 
 const FILES_TO_CACHE = [
   "./",

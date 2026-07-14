@@ -1,4 +1,5 @@
 import {
+  appState,
   getCurrentRace,
   getCurrentParticipant,
   getFavoriteParticipant,
@@ -27,6 +28,10 @@ export function render() {
 
   renderHome(
     currentRace
+  );
+
+  renderRaceList(
+    appState.races
   );
 
   if (!currentRace) {
@@ -233,7 +238,148 @@ function renderHome(race) {
     )
   );
 }
+function renderRaceList(races = []) {
+  const container =
+    document.getElementById(
+      "race-list-container"
+    );
 
+  if (!container) {
+    return;
+  }
+
+  container.innerHTML = "";
+
+  if (
+    !Array.isArray(races) ||
+    races.length === 0
+  ) {
+    container.innerHTML = `
+      <div class="race-list-empty">
+        <p>Nessuna gara salvata.</p>
+      </div>
+    `;
+
+    return;
+  }
+
+  const sortedRaces =
+    [...races].sort(
+      (firstRace, secondRace) =>
+        getRaceTimestamp(
+          secondRace
+        ) -
+        getRaceTimestamp(
+          firstRace
+        )
+    );
+
+  sortedRaces.forEach(
+    (race) => {
+      const status =
+        getRaceDisplayStatus(
+          race
+        );
+
+      const participants =
+        getParticipants(
+          race
+        );
+
+      const completedCount =
+        participants.filter(
+          (participant) =>
+            participant.status ===
+            "completed"
+        ).length;
+
+      const card =
+        document.createElement(
+          "button"
+        );
+
+      card.type = "button";
+
+      card.className =
+        `race-card race-card-${status.key}`;
+
+      card.dataset.raceId =
+        race.id;
+
+      card.innerHTML = `
+        <div class="race-card-header">
+          <span class="race-status-badge">
+            ${status.icon}
+            ${status.label}
+          </span>
+
+          <span class="race-card-arrow">
+            ›
+          </span>
+        </div>
+
+        <strong class="race-card-title">
+          ${escapeHtml(
+        race.name ||
+        "Gara senza nome"
+      )}
+        </strong>
+
+        <span class="race-card-info">
+          ${escapeHtml(
+        buildRaceInfo(race) ||
+        "Informazioni non disponibili"
+      )}
+        </span>
+
+        <div class="race-card-details">
+          <span>
+            📅 ${formatRaceDate(
+        race.date
+      )}
+          </span>
+
+          <span>
+            👤 ${participants.length}
+            ${participants.length === 1
+          ? "atleta"
+          : "atlete"
+        }
+          </span>
+        </div>
+
+        ${status.key ===
+          "in-progress"
+          ? `
+              <div class="race-card-progress">
+                <div class="race-card-progress-text">
+                  <span>Avanzamento</span>
+
+                  <strong>
+                    ${completedCount} / ${participants.length}
+                  </strong>
+                </div>
+
+                <div class="progress-bar">
+                  <div
+                    class="progress-fill"
+                    style="width: ${getRaceProgressPercentage(
+            participants
+          )}%"
+                  ></div>
+                </div>
+              </div>
+            `
+          : ""
+        }
+      `;
+
+      container.appendChild(
+        card
+      );
+    }
+  );
+}
 /*
 ==================================================
 DASHBOARD GARA
@@ -290,9 +436,9 @@ function renderDashboard(race) {
     const percentage =
       statistics.total > 0
         ? (
-            statistics.completed /
-            statistics.total
-          ) * 100
+          statistics.completed /
+          statistics.total
+        ) * 100
         : 0;
 
     progressFill.style.width =
@@ -457,36 +603,35 @@ function renderAthleteList(race) {
       button.innerHTML = `
         <div class="athlete-number">
           ${escapeHtml(
-            participant.entryNumber
-          )}
+        participant.entryNumber
+      )}
         </div>
 
         <div class="athlete-info">
           <strong>
-            ${
-              participant.isFavorite
-                ? "⭐ "
-                : ""
-            }
+            ${participant.isFavorite
+          ? "⭐ "
+          : ""
+        }
 
             ${escapeHtml(
-              participant.name
-            )}
+          participant.name
+        )}
           </strong>
 
           <span>
             ${escapeHtml(
-              participant.club ||
-                "Società non indicata"
-            )}
+          participant.club ||
+          "Società non indicata"
+        )}
           </span>
 
           <small class="${getNotesClass(
-            participant.notes
-          )}">
+          participant.notes
+        )}">
             ${formatNotesCount(
-              participant.notes
-            )}
+          participant.notes
+        )}
           </small>
         </div>
 
@@ -494,8 +639,8 @@ function renderAthleteList(race) {
           participant.status
         )}">
           ${getScoreStatusIcon(
-            participant.status
-          )}
+          participant.status
+        )}
         </div>
       `;
 
@@ -562,7 +707,7 @@ function renderScoreEntry(
   setTextById(
     "score-entry-athlete-club",
     participant.club ||
-      "Società non indicata"
+    "Società non indicata"
   );
 
   setTextById(
@@ -606,8 +751,8 @@ function renderScoreEntry(
       input.value =
         participant.scores
           ?.technical?.[
-            index
-          ] ?? "";
+        index
+        ] ?? "";
     }
   );
 
@@ -621,8 +766,8 @@ function renderScoreEntry(
       input.value =
         participant.scores
           ?.artistic?.[
-            index
-          ] ?? "";
+        index
+        ] ?? "";
     }
   );
 
@@ -714,7 +859,7 @@ function renderAthleteSheet(
   setTextById(
     "sheet-athlete-club",
     participant.club ||
-      "Società non indicata"
+    "Società non indicata"
   );
 
   const notesContainer =
@@ -732,8 +877,8 @@ function renderAthleteSheet(
             (note) => `
               <p>
                 • ${escapeHtml(
-                  note
-                )}
+              note
+            )}
               </p>
             `
           )
@@ -765,8 +910,8 @@ function renderAthleteSheet(
             (result) => `
               <p>
                 ${escapeHtml(
-                  result
-                )}
+              result
+            )}
               </p>
             `
           )
@@ -913,13 +1058,13 @@ function getEstimatedTime(
 
   estimatedDate.setMinutes(
     estimatedDate.getMinutes() +
-      (
-        position - 1
-      ) *
-        Number(
-          race.minutesPerAthlete ||
-            4
-        )
+    (
+      position - 1
+    ) *
+    Number(
+      race.minutesPerAthlete ||
+      4
+    )
   );
 
   return estimatedDate.toLocaleTimeString(
@@ -995,6 +1140,109 @@ function clearScoreInputs() {
   if (noteInput) {
     noteInput.value = "";
   }
+}
+
+function getRaceDisplayStatus(
+  race
+) {
+  const participants =
+    getParticipants(
+      race
+    );
+
+  if (
+    participants.length === 0
+  ) {
+    return {
+      key: "planned",
+      label: "Programm."
+      ,
+      icon: "📅"
+    };
+  }
+
+  const completed =
+    participants.filter(
+      participant =>
+        participant.status ===
+        "completed"
+    ).length;
+
+  if (
+    completed === 0
+  ) {
+    return {
+      key: "planned",
+      label: "Programm.",
+      icon: "📅"
+    };
+  }
+
+  if (
+    completed ===
+    participants.length
+  ) {
+    return {
+      key: "completed",
+      label: "Conclusa",
+      icon: "✅"
+    };
+  }
+
+  return {
+    key: "in-progress",
+    label: "In corso",
+    icon: "▶"
+  };
+}
+
+function getRaceTimestamp(
+  race
+) {
+  if (!race.date) {
+    return 0;
+  }
+
+  return new Date(
+    race.date
+  ).getTime();
+}
+
+function formatRaceDate(
+  date
+) {
+  if (!date) {
+    return "--";
+  }
+
+  return new Date(
+    date
+  ).toLocaleDateString(
+    "it-IT"
+  );
+}
+
+function getRaceProgressPercentage(
+  participants
+) {
+  if (
+    !participants.length
+  ) {
+    return 0;
+  }
+
+  const completed =
+    participants.filter(
+      participant =>
+        participant.status ===
+        "completed"
+    ).length;
+
+  return Math.round(
+    completed /
+    participants.length *
+    100
+  );
 }
 
 function setTextById(

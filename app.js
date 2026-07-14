@@ -151,6 +151,11 @@ function connectRaceButtons() {
       "go-race-list"
     );
 
+  const raceListContainer =
+    document.getElementById(
+      "race-list-container"
+    );
+
   const backHomeFromRaceListButton =
     document.getElementById(
       "back-home-from-race-list"
@@ -213,34 +218,67 @@ function connectRaceButtons() {
 
   if (raceListButton) {
     raceListButton.addEventListener(
-        "click",
-        () => {
-            showScreen(
-                "race-list-screen"
-            );
-        }
-    );
-}
-
-if (backHomeFromRaceListButton) {
-  backHomeFromRaceListButton.addEventListener(
-    "click",
-    () => {
-      if (window.history.length > 1) {
-        window.history.back();
-        return;
+      "click",
+      () => {
+        showScreen(
+          "race-list-screen"
+        );
       }
+    );
+  }
 
-      showScreen(
-        "home-screen",
-        {
-          addToHistory: false,
-          replaceHistory: true
+  if (raceListContainer) {
+    raceListContainer.addEventListener(
+      "click",
+      (event) => {
+        const raceCard =
+          event.target.closest(
+            "[data-race-id]"
+          );
+
+        if (!raceCard) {
+          return;
         }
-      );
-    }
-  );
-}
+
+        const raceId =
+          raceCard.dataset.raceId;
+
+        setCurrentRaceId(
+          raceId
+        );
+
+        setActiveRaceId(
+          raceId
+        );
+
+        render();
+
+        showScreen(
+          "race-dashboard-screen"
+        );
+      }
+    );
+  }
+
+  if (backHomeFromRaceListButton) {
+    backHomeFromRaceListButton.addEventListener(
+      "click",
+      () => {
+        if (window.history.length > 1) {
+          window.history.back();
+          return;
+        }
+
+        showScreen(
+          "home-screen",
+          {
+            addToHistory: false,
+            replaceHistory: true
+          }
+        );
+      }
+    );
+  }
 
   if (newRaceButton) {
     newRaceButton.addEventListener(
@@ -850,9 +888,8 @@ function connectParticipantForm() {
 
         const confirmed =
           confirm(
-            `Rimuovere ${
-              participant?.name ||
-              "questa partecipante"
+            `Rimuovere ${participant?.name ||
+            "questa partecipante"
             } dalla gara?`
           );
 
@@ -1158,39 +1195,37 @@ function renderDraftParticipants() {
       row.innerHTML = `
         <div class="athlete-number">
           ${escapeHtml(
-            participant.entryNumber
-          )}
+        participant.entryNumber
+      )}
         </div>
 
         <div class="athlete-info">
           <strong>
-            ${
-              participant.isFavorite
-                ? "⭐ "
-                : ""
-            }
+            ${participant.isFavorite
+          ? "⭐ "
+          : ""
+        }
 
             ${escapeHtml(
-              participant.name
-            )}
+          participant.name
+        )}
           </strong>
 
           <span>
             ${escapeHtml(
-              participant.club ||
-                "Società non indicata"
-            )}
+          participant.club ||
+          "Società non indicata"
+        )}
           </span>
 
-          ${
-            participant.scores
-              ? `
+          ${participant.scores
+          ? `
                 <small class="notes-active">
                   Punteggi già presenti
                 </small>
               `
-              : ""
-          }
+          : ""
+        }
         </div>
 
         <button

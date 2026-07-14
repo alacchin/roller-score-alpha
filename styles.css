@@ -661,6 +661,7 @@ button.athlete-row {
   margin-top: 6px;
   line-height: 1.35;
 }
+
 /* ==========================
    ELENCO GARE
 ========================== */
@@ -674,6 +675,111 @@ button.athlete-row {
   color: #9ca3af;
   text-align: center;
   line-height: 1.4;
+}
+
+.race-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 20px;
+}
+
+.race-card {
+  width: 100%;
+  padding: 18px;
+  border: 1px solid #4b5563;
+  border-left-width: 5px;
+  border-radius: 16px;
+  background: #1f2937;
+  color: #ffffff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.race-card:active {
+  transform: scale(0.99);
+}
+
+.race-card-planned {
+  border-left-color: #3b82f6;
+}
+
+.race-card-in-progress {
+  border-left-color: #22c55e;
+}
+
+.race-card-completed,
+.race-card-archived {
+  border-left-color: #9ca3af;
+}
+
+.race-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.race-status-badge {
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.race-card-arrow {
+  font-size: 28px;
+  line-height: 1;
+  color: #9ca3af;
+}
+
+.race-card-title {
+  display: block;
+  font-size: 21px;
+  line-height: 1.25;
+}
+
+.race-card-info {
+  display: block;
+  margin-top: 6px;
+  color: #cbd5e1;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.race-card-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  margin-top: 14px;
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+.race-card-progress {
+  margin-top: 16px;
+}
+
+.race-card-progress-text {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+  color: #d1d5db;
+  font-size: 14px;
+}
+
+.race-card .progress-bar {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #374151;
+}
+
+.race-card .progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: #22c55e;
 }
 
 /* ==========================
