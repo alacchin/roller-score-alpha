@@ -16,6 +16,10 @@ import {
   getStatusLabel
 } from "./ui.js";
 
+import {
+  getRaceStatusInfo
+} from "./raceUtils.js";
+
 /*
 ==================================================
 RENDER GENERALE
@@ -277,7 +281,7 @@ function renderRaceList(races = []) {
   sortedRaces.forEach(
     (race) => {
       const status =
-        getRaceDisplayStatus(
+        getRaceStatusInfo(
           race
         );
 
@@ -301,7 +305,9 @@ function renderRaceList(races = []) {
       card.type = "button";
 
       card.className =
-        `race-card race-card-${status.key}`;
+        `race-card race-card-${getRaceStatusCssClass(
+          status.key
+        )}`;
 
       card.dataset.raceId =
         race.id;
@@ -400,6 +406,16 @@ function renderDashboard(race) {
   setTextById(
     "dashboard-race-info",
     buildRaceInfo(race)
+  );
+
+  const raceStatus =
+    getRaceStatusInfo(
+      race
+    );
+
+  setTextById(
+    "dashboard-race-status",
+    `${raceStatus.icon} ${raceStatus.label}`
   );
 
   setTextById(
@@ -1142,58 +1158,20 @@ function clearScoreInputs() {
   }
 }
 
-function getRaceDisplayStatus(
-  race
+function getRaceStatusCssClass(
+  status
 ) {
-  const participants =
-    getParticipants(
-      race
-    );
-
-  if (
-    participants.length === 0
-  ) {
-    return {
-      key: "planned",
-      label: "Programm."
-      ,
-      icon: "📅"
-    };
-  }
-
-  const completed =
-    participants.filter(
-      participant =>
-        participant.status ===
-        "completed"
-    ).length;
-
-  if (
-    completed === 0
-  ) {
-    return {
-      key: "planned",
-      label: "Programm.",
-      icon: "📅"
-    };
-  }
-
-  if (
-    completed ===
-    participants.length
-  ) {
-    return {
-      key: "completed",
-      label: "Conclusa",
-      icon: "✅"
-    };
-  }
-
-  return {
-    key: "in-progress",
-    label: "In corso",
-    icon: "▶"
+  const cssClassMap = {
+    prepared: "planned",
+    "in-progress": "in-progress",
+    completed: "completed",
+    archived: "archived"
   };
+
+  return (
+    cssClassMap[status] ||
+    "planned"
+  );
 }
 
 function getRaceTimestamp(

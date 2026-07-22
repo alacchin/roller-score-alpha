@@ -32,7 +32,9 @@ export function createAthlete({
     id,
     name: String(name || "").trim(),
     club: String(club || "").trim(),
-    notes: Array.isArray(notes) ? notes : [],
+    notes: Array.isArray(notes)
+      ? notes
+      : [],
     previousResults: Array.isArray(previousResults)
       ? previousResults
       : [],
@@ -67,7 +69,8 @@ export function createParticipant({
   previousResults = [],
   scores = null
 }) {
-  const normalizedEntryNumber = Number(entryNumber);
+  const normalizedEntryNumber =
+    Number(entryNumber);
 
   return {
     id,
@@ -75,16 +78,25 @@ export function createParticipant({
     name: String(name || "").trim(),
     club: String(club || "").trim(),
 
-    entryNumber: normalizedEntryNumber,
-    order: normalizedEntryNumber,
+    entryNumber:
+      normalizedEntryNumber,
 
-    isFavorite: Boolean(isFavorite),
+    order:
+      normalizedEntryNumber,
+
+    isFavorite:
+      Boolean(isFavorite),
+
     status,
 
-    notes: Array.isArray(notes) ? notes : [],
-    previousResults: Array.isArray(previousResults)
-      ? previousResults
+    notes: Array.isArray(notes)
+      ? notes
       : [],
+
+    previousResults:
+      Array.isArray(previousResults)
+        ? previousResults
+        : [],
 
     scores
   };
@@ -106,31 +118,53 @@ export function createRace({
   category,
   startTime,
   minutesPerAthlete = 4,
-  participants = []
+  participants = [],
+  status = "prepared"
 }) {
-  const now = new Date().toISOString();
+  const now =
+    new Date().toISOString();
 
-  const sortedParticipants = [...participants].sort(
-    (firstParticipant, secondParticipant) =>
-      Number(firstParticipant.entryNumber) -
-      Number(secondParticipant.entryNumber)
-  );
+  const sortedParticipants =
+    [...participants].sort(
+      (
+        firstParticipant,
+        secondParticipant
+      ) =>
+        Number(
+          firstParticipant.entryNumber
+        ) -
+        Number(
+          secondParticipant.entryNumber
+        )
+    );
 
   return {
     id,
 
-    name: String(name || "").trim(),
+    name:
+      String(name || "").trim(),
+
     date,
-    location: String(location || "").trim(),
+
+    location:
+      String(location || "").trim(),
 
     federation,
     discipline,
-    category: String(category || "").trim(),
+
+    category:
+      String(category || "").trim(),
 
     startTime,
-    minutesPerAthlete: Number(minutesPerAthlete),
 
-    participants: sortedParticipants,
+    minutesPerAthlete:
+      Number(minutesPerAthlete),
+
+    participants:
+      sortedParticipants,
+
+    status:
+      normalizeRaceStatus(status),
 
     createdAt: now,
     updatedAt: now
@@ -150,14 +184,27 @@ export function createScore({
   note = ""
 }) {
   return {
-    technical: Array.isArray(technical) ? technical : [],
-    artistic: Array.isArray(artistic) ? artistic : [],
+    technical:
+      Array.isArray(technical)
+        ? technical
+        : [],
+
+    artistic:
+      Array.isArray(artistic)
+        ? artistic
+        : [],
+
     penalty:
-      penalty === null || penalty === ""
+      penalty === null ||
+        penalty === ""
         ? null
         : Number(penalty),
-    note: String(note || "").trim(),
-    savedAt: new Date().toISOString()
+
+    note:
+      String(note || "").trim(),
+
+    savedAt:
+      new Date().toISOString()
   };
 }
 
@@ -167,49 +214,100 @@ FUNZIONI DI SUPPORTO
 ==================================================
 */
 
-export function sortParticipantsByEntryNumber(participants = []) {
+export function sortParticipantsByEntryNumber(
+  participants = []
+) {
   return [...participants].sort(
-    (firstParticipant, secondParticipant) =>
-      Number(firstParticipant.entryNumber) -
-      Number(secondParticipant.entryNumber)
+    (
+      firstParticipant,
+      secondParticipant
+    ) =>
+      Number(
+        firstParticipant.entryNumber
+      ) -
+      Number(
+        secondParticipant.entryNumber
+      )
   );
 }
 
-export function normalizeParticipant(participant) {
-  const entryNumber = Number(
-    participant.entryNumber ?? participant.order
-  );
+export function normalizeParticipant(
+  participant
+) {
+  const entryNumber =
+    Number(
+      participant.entryNumber ??
+      participant.order
+    );
 
   return {
     ...participant,
+
     entryNumber,
     order: entryNumber,
-    isFavorite: Boolean(participant.isFavorite),
-    notes: Array.isArray(participant.notes)
-      ? participant.notes
-      : [],
-    previousResults: Array.isArray(
-      participant.previousResults
-    )
-      ? participant.previousResults
-      : [],
-    status: participant.status || "todo",
-    scores: participant.scores || null
+
+    isFavorite:
+      Boolean(
+        participant.isFavorite
+      ),
+
+    notes:
+      Array.isArray(
+        participant.notes
+      )
+        ? participant.notes
+        : [],
+
+    previousResults:
+      Array.isArray(
+        participant.previousResults
+      )
+        ? participant.previousResults
+        : [],
+
+    status:
+      participant.status ||
+      "todo",
+
+    scores:
+      participant.scores ||
+      null
   };
 }
 
-export function normalizeRace(race) {
+export function normalizeRace(
+  race
+) {
   const participants =
-    race.participants || race.athletes || [];
+    race.participants ||
+    race.athletes ||
+    [];
+
+  const normalizedParticipants =
+    sortParticipantsByEntryNumber(
+      participants.map(
+        normalizeParticipant
+      )
+    );
 
   return {
     ...race,
-    minutesPerAthlete: Number(
-      race.minutesPerAthlete || 4
-    ),
-    participants: sortParticipantsByEntryNumber(
-      participants.map(normalizeParticipant)
-    ),
+
+    minutesPerAthlete:
+      Number(
+        race.minutesPerAthlete ||
+        4
+      ),
+
+    participants:
+      normalizedParticipants,
+
+    status:
+      getNormalizedRaceStatus(
+        race,
+        normalizedParticipants
+      ),
+
     updatedAt:
       race.updatedAt ||
       race.createdAt ||
@@ -217,18 +315,127 @@ export function normalizeRace(race) {
   };
 }
 
-export function normalizeAthlete(athlete) {
+export function normalizeAthlete(
+  athlete
+) {
   return {
     ...athlete,
-    name: String(athlete.name || "").trim(),
-    club: String(athlete.club || "").trim(),
-    notes: Array.isArray(athlete.notes)
-      ? athlete.notes
-      : [],
-    previousResults: Array.isArray(
-      athlete.previousResults
-    )
-      ? athlete.previousResults
-      : []
+
+    name:
+      String(
+        athlete.name || ""
+      ).trim(),
+
+    club:
+      String(
+        athlete.club || ""
+      ).trim(),
+
+    notes:
+      Array.isArray(
+        athlete.notes
+      )
+        ? athlete.notes
+        : [],
+
+    previousResults:
+      Array.isArray(
+        athlete.previousResults
+      )
+        ? athlete.previousResults
+        : []
   };
+}
+
+/*
+==================================================
+NORMALIZZAZIONE STATO GARA
+==================================================
+*/
+
+function getNormalizedRaceStatus(
+  race,
+  participants
+) {
+  const savedStatus =
+    normalizeRaceStatus(
+      race.status
+    );
+
+  /*
+  Lo stato archiviato è manuale e deve essere
+  conservato anche se la gara viene modificata.
+  */
+
+  if (
+    savedStatus ===
+    "archived"
+  ) {
+    return "archived";
+  }
+
+  if (
+    participants.length === 0
+  ) {
+    return "prepared";
+  }
+
+  const completedCount =
+    participants.filter(
+      (participant) =>
+        participant.status ===
+        "completed"
+    ).length;
+
+  if (
+    completedCount === 0
+  ) {
+    return "prepared";
+  }
+
+  if (
+    completedCount ===
+    participants.length
+  ) {
+    return "completed";
+  }
+
+  return "in-progress";
+}
+
+function normalizeRaceStatus(
+  status
+) {
+  const validStatuses = [
+    "prepared",
+    "in-progress",
+    "completed",
+    "archived"
+  ];
+
+  if (
+    validStatuses.includes(
+      status
+    )
+  ) {
+    return status;
+  }
+
+  /*
+  Compatibilità con eventuali denominazioni
+  utilizzate nelle versioni precedenti.
+  */
+
+  const legacyStatusMap = {
+    planned: "prepared",
+    ready: "prepared",
+    current: "in-progress",
+    started: "in-progress",
+    finished: "completed"
+  };
+
+  return (
+    legacyStatusMap[status] ||
+    "prepared"
+  );
 }
