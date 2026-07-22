@@ -5,6 +5,7 @@ GESTIONE SCHERMATE
 */
 
 let currentScreenId = null;
+let appScreenHistory = [];
 
 function getActiveScreenId() {
   const activeScreen =
@@ -56,7 +57,6 @@ export function showScreen(
     "active"
   );
 
-  currentScreenId = screenId;
 
   if (replaceHistory) {
     window.history.replaceState(
@@ -80,6 +80,15 @@ export function showScreen(
       );
     }
   }
+
+  if (
+    currentScreenId &&
+    currentScreenId !== screenId
+) {
+    appScreenHistory.push(currentScreenId);
+}
+
+currentScreenId = screenId;
 
   window.scrollTo({
     top: 0,
@@ -181,21 +190,25 @@ TASTO INDIETRO TELEFONO / BROWSER
 function connectBrowserHistory() {
   window.addEventListener(
     "popstate",
-    (event) => {
-      const screenId =
-        event.state
-          ?.screenId ||
-        "home-screen";
+    () => {
 
-      showScreen(
-        screenId,
-        {
-          addToHistory: false
+        if (appScreenHistory.length === 0) {
+            return;
         }
-      );
+
+        const previousScreen =
+            appScreenHistory.pop();
+
+        showScreen(
+            previousScreen,
+            {
+                addToHistory: false,
+                replaceHistory: true
+            }
+        );
+
     }
-  );
-}
+);
 
 /*
 ==================================================
