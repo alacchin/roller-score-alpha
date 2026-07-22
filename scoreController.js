@@ -14,7 +14,12 @@ import {
 } from "./storage.js";
 
 import {
-  goToNextParticipant
+  updateRaceStatus
+} from "./raceUtils.js";
+
+import {
+  goToNextParticipant,
+  openRaceDashboard
 } from "./raceController.js";
 
 import {
@@ -92,9 +97,6 @@ export function saveCurrentScore() {
   currentParticipant.status =
     "completed";
 
-  currentRace.updatedAt =
-    new Date().toISOString();
-
   const nextParticipant =
     getNextParticipant(
       currentRace,
@@ -104,7 +106,7 @@ export function saveCurrentScore() {
   if (
     nextParticipant &&
     nextParticipant.status !==
-      "completed"
+    "completed"
   ) {
     resetOtherCurrentParticipants(
       currentRace,
@@ -115,23 +117,30 @@ export function saveCurrentScore() {
       "current";
   }
 
+  updateRaceStatus(
+    currentRace
+  );
+
+  currentRace.updatedAt =
+    new Date().toISOString();
+
   saveRaces(
     appState.races
   );
 
-  render();
-
   if (
     nextParticipant
   ) {
+    render();
+
     goToNextParticipant();
 
     return;
   }
 
-  alert(
-    "Ultima partecipante salvata. Gara completata."
-  );
+  openRaceDashboard({
+    replaceHistory: true
+  });
 }
 
 /*
@@ -272,7 +281,7 @@ function getNextParticipant(
 
   return (
     participants[
-      currentIndex + 1
+    currentIndex + 1
     ] || null
   );
 }

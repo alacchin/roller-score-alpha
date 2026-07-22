@@ -150,6 +150,28 @@ function connectBackButton(
   );
 }
 
+function connectHomeButton(
+  buttonId
+) {
+  const button =
+    document.getElementById(
+      buttonId
+    );
+
+  if (!button) {
+    return;
+  }
+
+  button.addEventListener(
+    "click",
+    () => {
+      showScreen(
+        "home-screen"
+      );
+    }
+  );
+}
+
 /*
 ==================================================
 TASTO INDIETRO TELEFONO / BROWSER
@@ -259,9 +281,8 @@ export function initNavigation() {
     "athlete-list-screen"
   );
 
-  connectBackButton(
-    "back-home-2",
-    "home-screen"
+  connectHomeButton(
+    "back-home-2"
   );
 
   /*

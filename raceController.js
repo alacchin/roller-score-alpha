@@ -16,6 +16,32 @@ import {
 
 /*
 ==================================================
+DASHBOARD GARA
+==================================================
+*/
+
+export function openRaceDashboard(
+  options = {}
+) {
+  const {
+    replaceHistory = false
+  } = options;
+
+  render();
+
+  showScreen(
+    "race-dashboard-screen",
+    {
+      addToHistory:
+        !replaceHistory,
+
+      replaceHistory
+    }
+  );
+}
+
+/*
+==================================================
 AVVIO GARA
 ==================================================
 */
@@ -159,7 +185,7 @@ function moveToRelativeParticipant(
   if (
     targetIndex < 0 ||
     targetIndex >=
-      participants.length
+    participants.length
   ) {
     return;
   }
@@ -232,7 +258,7 @@ function getRelativeParticipant(
   if (
     targetIndex < 0 ||
     targetIndex >=
-      participants.length
+    participants.length
   ) {
     return null;
   }
