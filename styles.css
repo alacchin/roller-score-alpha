@@ -868,3 +868,24 @@ button:disabled {
     font-size: 11px;
   }
 }
+/* =====================================
+   HOME DASHBOARD
+===================================== */
+
+.home-race-actions {
+  display: grid;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.home-secondary-actions {
+  margin-top: 16px;
+}
+
+.home-secondary-actions .label {
+  margin-bottom: 14px;
+}
+
+.home-secondary-actions button + button {
+  margin-top: 12px;
+}
