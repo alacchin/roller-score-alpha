@@ -5,7 +5,7 @@ import {
   getFavoriteParticipant,
   getParticipantPosition,
   getParticipants,
-  getRaceStatistics
+  getRaceStatistics,
 } from "./state.js";
 
 import {
@@ -13,12 +13,10 @@ import {
   getNotesClass,
   getScoreStatusClass,
   getScoreStatusIcon,
-  getStatusLabel
+  getStatusLabel,
 } from "./ui.js";
 
-import {
-  getRaceStatusInfo
-} from "./raceUtils.js";
+import { getRaceStatusInfo } from "./raceUtils.js";
 
 /*
 ==================================================
@@ -27,16 +25,11 @@ RENDER GENERALE
 */
 
 export function render() {
-  const currentRace =
-    getCurrentRace();
+  const currentRace = getCurrentRace();
 
-  renderHome(
-    currentRace
-  );
+  renderHome(currentRace);
 
-  renderRaceList(
-    appState.races
-  );
+  renderRaceList(appState.races);
 
   if (!currentRace) {
     renderEmptyDashboard();
@@ -45,22 +38,13 @@ export function render() {
     return;
   }
 
-  renderDashboard(
-    currentRace
-  );
+  renderDashboard(currentRace);
 
-  renderAthleteList(
-    currentRace
-  );
+  renderAthleteList(currentRace);
 
-  renderScoreEntry(
-    currentRace,
-    getCurrentParticipant()
-  );
+  renderScoreEntry(currentRace, getCurrentParticipant());
 
-  renderAthleteSheet(
-    getCurrentParticipant()
-  );
+  renderAthleteSheet(getCurrentParticipant());
 }
 
 /*
@@ -70,183 +54,166 @@ HOME
 */
 
 function renderHome(race) {
-  const raceName =
-    document.getElementById(
-      "home-race-name"
-    );
+  const raceName = document.getElementById("home-race-name");
 
-  const raceInfo =
-    document.getElementById(
-      "home-race-info"
-    );
+  const raceInfo = document.getElementById("home-race-info");
 
-  const favoriteName =
-    document.getElementById(
-      "home-favorite-athlete"
-    );
+  const favoriteName = document.getElementById("home-favorite-athlete");
 
-  const favoriteStatus =
-    document.getElementById(
-      "home-favorite-live-status"
-    );
+  const favoriteStatus = document.getElementById("home-favorite-live-status");
 
-  const favoritePosition =
-    document.getElementById(
-      "home-favorite-position"
-    );
+  const favoritePosition = document.getElementById("home-favorite-position");
 
-  const favoriteEntryNumber =
-    document.getElementById(
-      "home-favorite-entry-number"
-    );
+  const favoriteEntryNumber = document.getElementById(
+    "home-favorite-entry-number",
+  );
 
-  const categoryStartTime =
-    document.getElementById(
-      "home-category-start-time"
-    );
+  const categoryStartTime = document.getElementById("home-category-start-time");
 
-  const estimatedTime =
-    document.getElementById(
-      "home-favorite-estimated-time"
-    );
+  const estimatedTime = document.getElementById("home-favorite-estimated-time");
+
+  renderHomeRaceProgress(race);
 
   if (!race) {
-    setText(
-      raceName,
-      "Nessuna gara"
-    );
+    setText(raceName, "Nessuna gara");
 
-    setText(
-      raceInfo,
-      "Premi “Nuova gara” per iniziare"
-    );
+    setText(raceInfo, "Premi “Nuova gara” per iniziare");
 
-    setText(
-      favoriteName,
-      "⭐ Nessuna atleta preferita"
-    );
+    setText(favoriteName, "⭐ Nessuna atleta preferita");
 
-    setText(
-      favoriteStatus,
-      "---"
-    );
+    setText(favoriteStatus, "---");
 
-    setText(
-      favoritePosition,
-      "-- atleta di --"
-    );
+    setText(favoritePosition, "-- atleta di --");
 
-    setText(
-      favoriteEntryNumber,
-      "--"
-    );
+    setText(favoriteEntryNumber, "--");
 
-    setText(
-      categoryStartTime,
-      "--:--"
-    );
+    setText(categoryStartTime, "--:--");
 
-    setText(
-      estimatedTime,
-      "--:--"
-    );
+    setText(estimatedTime, "--:--");
 
     return;
   }
 
-  setText(
-    raceName,
-    race.name
-  );
+  setText(raceName, race.name);
 
-  setText(
-    raceInfo,
-    buildRaceInfo(race)
-  );
+  setText(raceInfo, buildRaceInfo(race));
 
-  const favorite =
-    getFavoriteParticipant(
-      race
-    );
+  const favorite = getFavoriteParticipant(race);
 
   if (!favorite) {
-    setText(
-      favoriteName,
-      "⭐ Nessuna atleta preferita"
-    );
+    setText(favoriteName, "⭐ Nessuna atleta preferita");
 
-    setText(
-      favoriteStatus,
-      "---"
-    );
+    setText(favoriteStatus, "---");
 
-    setText(
-      favoritePosition,
-      "-- atleta di --"
-    );
+    setText(favoritePosition, "-- atleta di --");
 
-    setText(
-      favoriteEntryNumber,
-      "--"
-    );
+    setText(favoriteEntryNumber, "--");
 
-    setText(
-      categoryStartTime,
-      race.startTime || "--:--"
-    );
+    setText(categoryStartTime, race.startTime || "--:--");
 
-    setText(
-      estimatedTime,
-      "--:--"
-    );
+    setText(estimatedTime, "--:--");
 
     return;
   }
 
-  setText(
-    favoriteName,
-    `⭐ ${favorite.name}`
-  );
+  setText(favoriteName, `⭐ ${favorite.name}`);
+
+  setText(favoriteStatus, getFavoriteLiveStatus(race, favorite));
+
+  setText(favoritePosition, formatParticipantPosition(race, favorite));
+
+  setText(favoriteEntryNumber, favorite.entryNumber);
+
+  setText(categoryStartTime, race.startTime || "--:--");
+
+  setText(estimatedTime, getEstimatedTime(race, favorite));
+}
+
+function renderHomeRaceProgress(race) {
+  const statusElement = document.getElementById("home-race-status");
+
+  const progressText = document.getElementById("home-progress-text");
+
+  const progressFill = document.getElementById("home-progress-fill");
+
+  const nextAthleteElement = document.getElementById("home-next-athlete");
+
+  const primaryButton = document.getElementById("go-score-entry-home");
+
+  if (!race) {
+    setText(statusElement, "---");
+    setText(progressText, "0 / 0");
+    setText(nextAthleteElement, "Nessuna gara attiva");
+
+    if (progressFill) {
+      progressFill.style.width = "0%";
+    }
+
+    if (primaryButton) {
+      primaryButton.textContent = "▶ Inizia gara";
+      primaryButton.disabled = true;
+    }
+
+    return;
+  }
+
+  const statistics = getRaceStatistics(race);
+
+  const participants = getParticipants(race);
+
+  const raceStatus = getRaceStatusInfo(race);
+
+  const progressPercentage =
+    statistics.total > 0
+      ? Math.round((statistics.completed / statistics.total) * 100)
+      : 0;
+
+  const nextParticipant =
+    participants.find((participant) => participant.status === "current") ||
+    participants.find((participant) => participant.status === "todo") ||
+    participants.find((participant) => participant.status === "missing") ||
+    null;
+
+  setText(statusElement, `${raceStatus.icon} ${raceStatus.label}`);
 
   setText(
-    favoriteStatus,
-    getFavoriteLiveStatus(
-      race,
-      favorite
-    )
+    progressText,
+    `${statistics.completed} / ${statistics.total} · ${progressPercentage}%`,
   );
 
-  setText(
-    favoritePosition,
-    formatParticipantPosition(
-      race,
-      favorite
-    )
-  );
+  if (progressFill) {
+    progressFill.style.width = `${progressPercentage}%`;
+  }
 
-  setText(
-    favoriteEntryNumber,
-    favorite.entryNumber
-  );
+  if (!nextParticipant) {
+    setText(nextAthleteElement, "Gara completata");
+  } else {
+    setText(
+      nextAthleteElement,
+      `N. ${nextParticipant.entryNumber} — ${nextParticipant.name}`,
+    );
+  }
 
-  setText(
-    categoryStartTime,
-    race.startTime || "--:--"
-  );
+  if (!primaryButton) {
+    return;
+  }
 
-  setText(
-    estimatedTime,
-    getEstimatedTime(
-      race,
-      favorite
-    )
-  );
+  primaryButton.disabled = false;
+
+  if (raceStatus.key === "in-progress") {
+    primaryButton.textContent = "▶ Riprendi gara";
+    return;
+  }
+
+  if (raceStatus.key === "completed") {
+    primaryButton.textContent = "🔎 Rivedi punteggi";
+    return;
+  }
+
+  primaryButton.textContent = "▶ Inizia gara";
 }
 function renderRaceList(races = []) {
-  const container =
-    document.getElementById(
-      "race-list-container"
-    );
+  const container = document.getElementById("race-list-container");
 
   if (!container) {
     return;
@@ -254,10 +221,7 @@ function renderRaceList(races = []) {
 
   container.innerHTML = "";
 
-  if (
-    !Array.isArray(races) ||
-    races.length === 0
-  ) {
+  if (!Array.isArray(races) || races.length === 0) {
     container.innerHTML = `
       <div class="race-list-empty">
         <p>Nessuna gara salvata.</p>
@@ -267,52 +231,29 @@ function renderRaceList(races = []) {
     return;
   }
 
-  const sortedRaces =
-    [...races].sort(
-      (firstRace, secondRace) =>
-        getRaceTimestamp(
-          secondRace
-        ) -
-        getRaceTimestamp(
-          firstRace
-        )
-    );
+  const sortedRaces = [...races].sort(
+    (firstRace, secondRace) =>
+      getRaceTimestamp(secondRace) - getRaceTimestamp(firstRace),
+  );
 
-  sortedRaces.forEach(
-    (race) => {
-      const status =
-        getRaceStatusInfo(
-          race
-        );
+  sortedRaces.forEach((race) => {
+    const status = getRaceStatusInfo(race);
 
-      const participants =
-        getParticipants(
-          race
-        );
+    const participants = getParticipants(race);
 
-      const completedCount =
-        participants.filter(
-          (participant) =>
-            participant.status ===
-            "completed"
-        ).length;
+    const completedCount = participants.filter(
+      (participant) => participant.status === "completed",
+    ).length;
 
-      const card =
-        document.createElement(
-          "button"
-        );
+    const card = document.createElement("button");
 
-      card.type = "button";
+    card.type = "button";
 
-      card.className =
-        `race-card race-card-${getRaceStatusCssClass(
-          status.key
-        )}`;
+    card.className = `race-card race-card-${getRaceStatusCssClass(status.key)}`;
 
-      card.dataset.raceId =
-        race.id;
+    card.dataset.raceId = race.id;
 
-      card.innerHTML = `
+    card.innerHTML = `
         <div class="race-card-header">
           <span class="race-status-badge">
             ${status.icon}
@@ -325,38 +266,27 @@ function renderRaceList(races = []) {
         </div>
 
         <strong class="race-card-title">
-          ${escapeHtml(
-        race.name ||
-        "Gara senza nome"
-      )}
+          ${escapeHtml(race.name || "Gara senza nome")}
         </strong>
 
         <span class="race-card-info">
-          ${escapeHtml(
-        buildRaceInfo(race) ||
-        "Informazioni non disponibili"
-      )}
+          ${escapeHtml(buildRaceInfo(race) || "Informazioni non disponibili")}
         </span>
 
         <div class="race-card-details">
           <span>
-            📅 ${formatRaceDate(
-        race.date
-      )}
+            📅 ${formatRaceDate(race.date)}
           </span>
 
           <span>
             👤 ${participants.length}
-            ${participants.length === 1
-          ? "atleta"
-          : "atlete"
-        }
+            ${participants.length === 1 ? "atleta" : "atlete"}
           </span>
         </div>
 
-        ${status.key ===
-          "in-progress"
-          ? `
+        ${
+          status.key === "in-progress"
+            ? `
               <div class="race-card-progress">
                 <div class="race-card-progress-text">
                   <span>Avanzamento</span>
@@ -369,22 +299,17 @@ function renderRaceList(races = []) {
                 <div class="progress-bar">
                   <div
                     class="progress-fill"
-                    style="width: ${getRaceProgressPercentage(
-            participants
-          )}%"
+                    style="width: ${getRaceProgressPercentage(participants)}%"
                   ></div>
                 </div>
               </div>
             `
-          : ""
+            : ""
         }
       `;
 
-      container.appendChild(
-        card
-      );
-    }
-  );
+    container.appendChild(card);
+  });
 }
 /*
 ==================================================
@@ -393,165 +318,86 @@ DASHBOARD GARA
 */
 
 function renderDashboard(race) {
-  const statistics =
-    getRaceStatistics(
-      race
-    );
+  const statistics = getRaceStatistics(race);
 
-  setTextById(
-    "dashboard-race-name",
-    race.name
-  );
+  setTextById("dashboard-race-name", race.name);
 
-  setTextById(
-    "dashboard-race-info",
-    buildRaceInfo(race)
-  );
+  setTextById("dashboard-race-info", buildRaceInfo(race));
 
-  const raceStatus =
-    getRaceStatusInfo(
-      race
-    );
+  const raceStatus = getRaceStatusInfo(race);
 
   setTextById(
     "dashboard-race-status",
-    `${raceStatus.icon} ${raceStatus.label}`
+    `${raceStatus.icon} ${raceStatus.label}`,
   );
 
   setTextById(
     "dashboard-progress-text",
-    `${statistics.completed} / ${statistics.total}`
+    `${statistics.completed} / ${statistics.total}`,
   );
 
-  setTextById(
-    "dashboard-athletes-count",
-    statistics.total
-  );
+  setTextById("dashboard-athletes-count", statistics.total);
 
-  setTextById(
-    "dashboard-completed-count",
-    statistics.completed
-  );
+  setTextById("dashboard-completed-count", statistics.completed);
 
-  setTextById(
-    "dashboard-todo-count",
-    statistics.todo
-  );
+  setTextById("dashboard-todo-count", statistics.todo);
 
-  setTextById(
-    "dashboard-missing-count",
-    statistics.missing
-  );
+  setTextById("dashboard-missing-count", statistics.missing);
 
-  const progressFill =
-    document.getElementById(
-      "dashboard-progress-fill"
-    );
+  const progressFill = document.getElementById("dashboard-progress-fill");
 
   if (progressFill) {
     const percentage =
       statistics.total > 0
-        ? (
-          statistics.completed /
-          statistics.total
-        ) * 100
+        ? (statistics.completed / statistics.total) * 100
         : 0;
 
-    progressFill.style.width =
-      `${percentage}%`;
+    progressFill.style.width = `${percentage}%`;
   }
 
-  const favorite =
-    getFavoriteParticipant(
-      race
-    );
+  const favorite = getFavoriteParticipant(race);
 
   if (!favorite) {
-    setTextById(
-      "dashboard-favorite-position",
-      "-- atleta di --"
-    );
+    setTextById("dashboard-favorite-position", "-- atleta di --");
 
-    setTextById(
-      "dashboard-favorite-entry-number",
-      "--"
-    );
+    setTextById("dashboard-favorite-entry-number", "--");
 
-    setTextById(
-      "dashboard-category-start-time",
-      race.startTime || "--:--"
-    );
+    setTextById("dashboard-category-start-time", race.startTime || "--:--");
 
-    setTextById(
-      "dashboard-favorite-estimated-time",
-      "--:--"
-    );
+    setTextById("dashboard-favorite-estimated-time", "--:--");
 
     return;
   }
 
   setTextById(
     "dashboard-favorite-position",
-    formatParticipantPosition(
-      race,
-      favorite
-    )
+    formatParticipantPosition(race, favorite),
   );
 
-  setTextById(
-    "dashboard-favorite-entry-number",
-    favorite.entryNumber
-  );
+  setTextById("dashboard-favorite-entry-number", favorite.entryNumber);
 
-  setTextById(
-    "dashboard-category-start-time",
-    race.startTime || "--:--"
-  );
+  setTextById("dashboard-category-start-time", race.startTime || "--:--");
 
   setTextById(
     "dashboard-favorite-estimated-time",
-    getEstimatedTime(
-      race,
-      favorite
-    )
+    getEstimatedTime(race, favorite),
   );
 }
 
 function renderEmptyDashboard() {
-  setTextById(
-    "dashboard-race-name",
-    "Nessuna gara"
-  );
+  setTextById("dashboard-race-name", "Nessuna gara");
 
-  setTextById(
-    "dashboard-race-info",
-    "---"
-  );
+  setTextById("dashboard-race-info", "---");
 
-  setTextById(
-    "dashboard-progress-text",
-    "0 / 0"
-  );
+  setTextById("dashboard-progress-text", "0 / 0");
 
-  setTextById(
-    "dashboard-athletes-count",
-    "0"
-  );
+  setTextById("dashboard-athletes-count", "0");
 
-  setTextById(
-    "dashboard-completed-count",
-    "0"
-  );
+  setTextById("dashboard-completed-count", "0");
 
-  setTextById(
-    "dashboard-todo-count",
-    "0"
-  );
+  setTextById("dashboard-todo-count", "0");
 
-  setTextById(
-    "dashboard-missing-count",
-    "0"
-  );
+  setTextById("dashboard-missing-count", "0");
 }
 
 /*
@@ -561,25 +407,16 @@ ELENCO ATLETE
 */
 
 function renderAthleteList(race) {
-  const participants =
-    getParticipants(
-      race
-    );
+  const participants = getParticipants(race);
 
-  setTextById(
-    "athlete-list-title",
-    race.category
-  );
+  setTextById("athlete-list-title", race.category);
 
   setTextById(
     "athlete-list-subtitle",
-    `${race.name} • ${participants.length} atlete`
+    `${race.name} • ${participants.length} atlete`,
   );
 
-  const container =
-    document.getElementById(
-      "athlete-list-container"
-    );
+  const container = document.getElementById("athlete-list-container");
 
   if (!container) {
     return;
@@ -587,9 +424,7 @@ function renderAthleteList(race) {
 
   container.innerHTML = "";
 
-  if (
-    participants.length === 0
-  ) {
+  if (participants.length === 0) {
     container.innerHTML = `
       <p class="small-muted">
         Nessuna partecipante inserita.
@@ -599,89 +434,53 @@ function renderAthleteList(race) {
     return;
   }
 
-  participants.forEach(
-    (participant) => {
-      const button =
-        document.createElement(
-          "button"
-        );
+  participants.forEach((participant) => {
+    const button = document.createElement("button");
 
-      button.type = "button";
+    button.type = "button";
 
-      button.dataset.participantId =
-        participant.id;
+    button.dataset.participantId = participant.id;
 
-      button.className =
-        participant.isFavorite
-          ? "athlete-row athlete-highlight"
-          : "athlete-row";
+    button.className = participant.isFavorite
+      ? "athlete-row athlete-highlight"
+      : "athlete-row";
 
-      button.innerHTML = `
+    button.innerHTML = `
         <div class="athlete-number">
-          ${escapeHtml(
-        participant.entryNumber
-      )}
+          ${escapeHtml(participant.entryNumber)}
         </div>
 
         <div class="athlete-info">
           <strong>
-            ${participant.isFavorite
-          ? "⭐ "
-          : ""
-        }
+            ${participant.isFavorite ? "⭐ " : ""}
 
-            ${escapeHtml(
-          participant.name
-        )}
+            ${escapeHtml(participant.name)}
           </strong>
 
           <span>
-            ${escapeHtml(
-          participant.club ||
-          "Società non indicata"
-        )}
+            ${escapeHtml(participant.club || "Società non indicata")}
           </span>
 
-          <small class="${getNotesClass(
-          participant.notes
-        )}">
-            ${formatNotesCount(
-          participant.notes
-        )}
+          <small class="${getNotesClass(participant.notes)}">
+            ${formatNotesCount(participant.notes)}
           </small>
         </div>
 
-        <div class="athlete-status ${getScoreStatusClass(
-          participant.status
-        )}">
-          ${getScoreStatusIcon(
-          participant.status
-        )}
+        <div class="athlete-status ${getScoreStatusClass(participant.status)}">
+          ${getScoreStatusIcon(participant.status)}
         </div>
       `;
 
-      container.appendChild(
-        button
-      );
-    }
-  );
+    container.appendChild(button);
+  });
 }
 
 function renderEmptyAthleteList() {
-  setTextById(
-    "athlete-list-title",
-    "Nessuna gara"
-  );
+  setTextById("athlete-list-title", "Nessuna gara");
 
-  setTextById(
-    "athlete-list-subtitle",
-    "---"
-  );
+  setTextById("athlete-list-subtitle", "---");
 
-  const container =
-    document.getElementById(
-      "athlete-list-container"
-    );
+  const container = document.getElementById("athlete-list-container");
 
   if (container) {
     container.innerHTML = `
@@ -698,10 +497,7 @@ INSERIMENTO PUNTEGGI
 ==================================================
 */
 
-function renderScoreEntry(
-  race,
-  participant
-) {
+function renderScoreEntry(race, participant) {
   if (!participant) {
     renderEmptyScoreEntry();
     return;
@@ -709,137 +505,67 @@ function renderScoreEntry(
 
   setTextById(
     "score-entry-order",
-    formatParticipantPosition(
-      race,
-      participant
-    )
+    formatParticipantPosition(race, participant),
   );
 
-  setTextById(
-    "score-entry-athlete-name",
-    participant.name
-  );
+  setTextById("score-entry-athlete-name", participant.name);
 
   setTextById(
     "score-entry-athlete-club",
-    participant.club ||
-    "Società non indicata"
+    participant.club || "Società non indicata",
   );
 
-  setTextById(
-    "score-entry-notes-count",
-    formatNotesCount(
-      participant.notes
-    )
-  );
+  setTextById("score-entry-notes-count", formatNotesCount(participant.notes));
 
-  setTextById(
-    "score-entry-status-label",
-    getStatusLabel(
-      participant.status
-    )
-  );
+  setTextById("score-entry-status-label", getStatusLabel(participant.status));
 
-  const statusBadge =
-    document.getElementById(
-      "score-entry-status-badge"
-    );
+  const statusBadge = document.getElementById("score-entry-status-badge");
 
   if (statusBadge) {
-    statusBadge.className =
-      `score-status-badge ${getScoreStatusClass(
-        participant.status
-      )}`;
+    statusBadge.className = `score-status-badge ${getScoreStatusClass(
+      participant.status,
+    )}`;
 
-    statusBadge.textContent =
-      getScoreStatusIcon(
-        participant.status
-      );
+    statusBadge.textContent = getScoreStatusIcon(participant.status);
   }
 
-  const technicalInputs =
-    document.querySelectorAll(
-      "[data-score-technical]"
-    );
+  const technicalInputs = document.querySelectorAll("[data-score-technical]");
 
-  technicalInputs.forEach(
-    (input, index) => {
-      input.value =
-        participant.scores
-          ?.technical?.[
-        index
-        ] ?? "";
-    }
-  );
+  technicalInputs.forEach((input, index) => {
+    input.value = participant.scores?.technical?.[index] ?? "";
+  });
 
-  const artisticInputs =
-    document.querySelectorAll(
-      "[data-score-artistic]"
-    );
+  const artisticInputs = document.querySelectorAll("[data-score-artistic]");
 
-  artisticInputs.forEach(
-    (input, index) => {
-      input.value =
-        participant.scores
-          ?.artistic?.[
-        index
-        ] ?? "";
-    }
-  );
+  artisticInputs.forEach((input, index) => {
+    input.value = participant.scores?.artistic?.[index] ?? "";
+  });
 
-  const penaltyInput =
-    document.getElementById(
-      "score-penalty"
-    );
+  const penaltyInput = document.getElementById("score-penalty");
 
   if (penaltyInput) {
-    penaltyInput.value =
-      participant.scores
-        ?.penalty ?? "";
+    penaltyInput.value = participant.scores?.penalty ?? "";
   }
 
-  const noteInput =
-    document.getElementById(
-      "score-note"
-    );
+  const noteInput = document.getElementById("score-note");
 
   if (noteInput) {
-    noteInput.value =
-      participant.scores
-        ?.note ?? "";
+    noteInput.value = participant.scores?.note ?? "";
   }
 
-  updateNavigationButtons(
-    race,
-    participant
-  );
+  updateNavigationButtons(race, participant);
 }
 
 function renderEmptyScoreEntry() {
-  setTextById(
-    "score-entry-order",
-    "-- atleta di --"
-  );
+  setTextById("score-entry-order", "-- atleta di --");
 
-  setTextById(
-    "score-entry-athlete-name",
-    "Nessuna atleta"
-  );
+  setTextById("score-entry-athlete-name", "Nessuna atleta");
 
-  setTextById(
-    "score-entry-athlete-club",
-    "---"
-  );
+  setTextById("score-entry-athlete-club", "---");
 
-  setTextById(
-    "score-entry-notes-count",
-    "📝 Nessuna nota"
-  );
+  setTextById("score-entry-notes-count", "📝 Nessuna nota");
 
-  setTextById(
-    "score-entry-status-label",
-    "Da fare"
-  );
+  setTextById("score-entry-status-label", "Da fare");
 
   clearScoreInputs();
 }
@@ -850,55 +576,32 @@ SCHEDA ATLETA
 ==================================================
 */
 
-function renderAthleteSheet(
-  participant
-) {
+function renderAthleteSheet(participant) {
   if (!participant) {
-    setTextById(
-      "sheet-athlete-name",
-      "Nessuna atleta"
-    );
+    setTextById("sheet-athlete-name", "Nessuna atleta");
 
-    setTextById(
-      "sheet-athlete-club",
-      "---"
-    );
+    setTextById("sheet-athlete-club", "---");
 
     return;
   }
 
-  setTextById(
-    "sheet-athlete-name",
-    participant.name
-  );
+  setTextById("sheet-athlete-name", participant.name);
 
-  setTextById(
-    "sheet-athlete-club",
-    participant.club ||
-    "Società non indicata"
-  );
+  setTextById("sheet-athlete-club", participant.club || "Società non indicata");
 
-  const notesContainer =
-    document.getElementById(
-      "sheet-athlete-notes"
-    );
+  const notesContainer = document.getElementById("sheet-athlete-notes");
 
   if (notesContainer) {
-    if (
-      participant.notes?.length
-    ) {
-      notesContainer.innerHTML =
-        participant.notes
-          .map(
-            (note) => `
+    if (participant.notes?.length) {
+      notesContainer.innerHTML = participant.notes
+        .map(
+          (note) => `
               <p>
-                • ${escapeHtml(
-              note
-            )}
+                • ${escapeHtml(note)}
               </p>
-            `
-          )
-          .join("");
+            `,
+        )
+        .join("");
     } else {
       notesContainer.innerHTML = `
         <p class="small-muted">
@@ -908,30 +611,19 @@ function renderAthleteSheet(
     }
   }
 
-  const resultsContainer =
-    document.getElementById(
-      "sheet-athlete-results"
-    );
+  const resultsContainer = document.getElementById("sheet-athlete-results");
 
   if (resultsContainer) {
-    if (
-      participant
-        .previousResults
-        ?.length
-    ) {
-      resultsContainer.innerHTML =
-        participant
-          .previousResults
-          .map(
-            (result) => `
+    if (participant.previousResults?.length) {
+      resultsContainer.innerHTML = participant.previousResults
+        .map(
+          (result) => `
               <p>
-                ${escapeHtml(
-              result
-            )}
+                ${escapeHtml(result)}
               </p>
-            `
-          )
-          .join("");
+            `,
+        )
+        .join("");
     } else {
       resultsContainer.innerHTML = `
         <p class="small-muted">
@@ -949,29 +641,17 @@ FUNZIONI DI SUPPORTO
 */
 
 function buildRaceInfo(race) {
-  const parts = [
-    race.federation,
-    race.discipline,
-    race.category
-  ].filter(Boolean);
+  const parts = [race.federation, race.discipline, race.category].filter(
+    Boolean,
+  );
 
   return parts.join(" • ");
 }
 
-function formatParticipantPosition(
-  race,
-  participant
-) {
-  const position =
-    getParticipantPosition(
-      participant.id,
-      race
-    );
+function formatParticipantPosition(race, participant) {
+  const position = getParticipantPosition(participant.id, race);
 
-  const total =
-    getParticipants(
-      race
-    ).length;
+  const total = getParticipants(race).length;
 
   if (!position) {
     return "-- atleta di --";
@@ -980,296 +660,156 @@ function formatParticipantPosition(
   return `${position}ª atleta di ${total}`;
 }
 
-function getFavoriteLiveStatus(
-  race,
-  favorite
-) {
-  if (
-    favorite.status ===
-    "completed"
-  ) {
+function getFavoriteLiveStatus(race, favorite) {
+  if (favorite.status === "completed") {
     return "✅ VALUTAZIONE COMPLETATA";
   }
 
-  if (
-    favorite.status ===
-    "current"
-  ) {
+  if (favorite.status === "current") {
     return "🔵 IN PISTA";
   }
 
-  const position =
-    getParticipantPosition(
-      favorite.id,
-      race
-    );
+  const position = getParticipantPosition(favorite.id, race);
 
   if (!position) {
     return "---";
   }
 
-  const participantsBefore =
-    getParticipants(
-      race
-    ).slice(
-      0,
-      position - 1
-    );
+  const participantsBefore = getParticipants(race).slice(0, position - 1);
 
-  const pendingBefore =
-    participantsBefore.filter(
-      (participant) =>
-        participant.status !==
-        "completed"
-    ).length;
+  const pendingBefore = participantsBefore.filter(
+    (participant) => participant.status !== "completed",
+  ).length;
 
-  if (
-    pendingBefore === 0
-  ) {
+  if (pendingBefore === 0) {
     return "🟠 PROSSIMA ATLETA";
   }
 
-  if (
-    pendingBefore === 1
-  ) {
+  if (pendingBefore === 1) {
     return "🟡 TRA 1 ATLETA";
   }
 
   return `🟡 TRA ${pendingBefore} ATLETE`;
 }
 
-function getEstimatedTime(
-  race,
-  participant
-) {
-  const position =
-    getParticipantPosition(
-      participant.id,
-      race
-    );
+function getEstimatedTime(race, participant) {
+  const position = getParticipantPosition(participant.id, race);
 
-  if (
-    !position ||
-    !race.startTime
-  ) {
+  if (!position || !race.startTime) {
     return "--:--";
   }
 
-  const [
-    hours,
-    minutes
-  ] = race.startTime
-    .split(":")
-    .map(Number);
+  const [hours, minutes] = race.startTime.split(":").map(Number);
 
-  const estimatedDate =
-    new Date();
+  const estimatedDate = new Date();
 
-  estimatedDate.setHours(
-    hours,
-    minutes,
-    0,
-    0
-  );
+  estimatedDate.setHours(hours, minutes, 0, 0);
 
   estimatedDate.setMinutes(
     estimatedDate.getMinutes() +
-    (
-      position - 1
-    ) *
-    Number(
-      race.minutesPerAthlete ||
-      4
-    )
+      (position - 1) * Number(race.minutesPerAthlete || 4),
   );
 
-  return estimatedDate.toLocaleTimeString(
-    "it-IT",
-    {
-      hour: "2-digit",
-      minute: "2-digit"
-    }
-  );
+  return estimatedDate.toLocaleTimeString("it-IT", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }
 
-function updateNavigationButtons(
-  race,
-  participant
-) {
-  const position =
-    getParticipantPosition(
-      participant.id,
-      race
-    );
+function updateNavigationButtons(race, participant) {
+  const position = getParticipantPosition(participant.id, race);
 
-  const total =
-    getParticipants(
-      race
-    ).length;
+  const total = getParticipants(race).length;
 
-  const previousButton =
-    document.getElementById(
-      "previous-athlete"
-    );
+  const previousButton = document.getElementById("previous-athlete");
 
-  const nextButton =
-    document.getElementById(
-      "next-athlete"
-    );
+  const nextButton = document.getElementById("next-athlete");
 
   if (previousButton) {
-    previousButton.disabled =
-      position === 1;
+    previousButton.disabled = position === 1;
   }
 
   if (nextButton) {
-    nextButton.disabled =
-      position === total;
+    nextButton.disabled = position === total;
   }
 }
 
 function clearScoreInputs() {
   document
-    .querySelectorAll(
-      "[data-score-technical], [data-score-artistic]"
-    )
-    .forEach(
-      (input) => {
-        input.value = "";
-      }
-    );
+    .querySelectorAll("[data-score-technical], [data-score-artistic]")
+    .forEach((input) => {
+      input.value = "";
+    });
 
-  const penaltyInput =
-    document.getElementById(
-      "score-penalty"
-    );
+  const penaltyInput = document.getElementById("score-penalty");
 
   if (penaltyInput) {
     penaltyInput.value = "";
   }
 
-  const noteInput =
-    document.getElementById(
-      "score-note"
-    );
+  const noteInput = document.getElementById("score-note");
 
   if (noteInput) {
     noteInput.value = "";
   }
 }
 
-function getRaceStatusCssClass(
-  status
-) {
+function getRaceStatusCssClass(status) {
   const cssClassMap = {
     prepared: "planned",
     "in-progress": "in-progress",
     completed: "completed",
-    archived: "archived"
+    archived: "archived",
   };
 
-  return (
-    cssClassMap[status] ||
-    "planned"
-  );
+  return cssClassMap[status] || "planned";
 }
 
-function getRaceTimestamp(
-  race
-) {
+function getRaceTimestamp(race) {
   if (!race.date) {
     return 0;
   }
 
-  return new Date(
-    race.date
-  ).getTime();
+  return new Date(race.date).getTime();
 }
 
-function formatRaceDate(
-  date
-) {
+function formatRaceDate(date) {
   if (!date) {
     return "--";
   }
 
-  return new Date(
-    date
-  ).toLocaleDateString(
-    "it-IT"
-  );
+  return new Date(date).toLocaleDateString("it-IT");
 }
 
-function getRaceProgressPercentage(
-  participants
-) {
-  if (
-    !participants.length
-  ) {
+function getRaceProgressPercentage(participants) {
+  if (!participants.length) {
     return 0;
   }
 
-  const completed =
-    participants.filter(
-      participant =>
-        participant.status ===
-        "completed"
-    ).length;
+  const completed = participants.filter(
+    (participant) => participant.status === "completed",
+  ).length;
 
-  return Math.round(
-    completed /
-    participants.length *
-    100
-  );
+  return Math.round((completed / participants.length) * 100);
 }
 
-function setTextById(
-  elementId,
-  value
-) {
-  const element =
-    document.getElementById(
-      elementId
-    );
+function setTextById(elementId, value) {
+  const element = document.getElementById(elementId);
 
-  setText(
-    element,
-    value
-  );
+  setText(element, value);
 }
 
-function setText(
-  element,
-  value
-) {
+function setText(element, value) {
   if (element) {
-    element.textContent =
-      value ?? "";
+    element.textContent = value ?? "";
   }
 }
 
-function escapeHtml(
-  value = ""
-) {
+function escapeHtml(value = "") {
   return String(value)
-    .replaceAll(
-      "&",
-      "&amp;"
-    )
-    .replaceAll(
-      "<",
-      "&lt;"
-    )
-    .replaceAll(
-      ">",
-      "&gt;"
-    )
-    .replaceAll(
-      '"',
-      "&quot;"
-    )
-    .replaceAll(
-      "'",
-      "&#039;"
-    );
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
 }
