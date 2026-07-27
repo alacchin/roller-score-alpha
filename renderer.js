@@ -504,11 +504,9 @@ function renderScoreEntry(race, participant) {
   }
 
   setTextById(
-    "score-entry-order",
-    formatParticipantPosition(race, participant),
+    "score-entry-athlete-name",
+    participant.isFavorite ? `⭐ ${participant.name}` : participant.name,
   );
-
-  setTextById("score-entry-athlete-name", participant.name);
 
   setTextById(
     "score-entry-athlete-club",
