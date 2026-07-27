@@ -46,6 +46,8 @@ import { initAthleteSheet } from "./athleteSheet.js";
 
 import { render } from "./renderer.js";
 
+import { getRaceStatusInfo } from "./raceUtils.js";
+
 /*
 ==================================================
 AVVIO APP
@@ -77,6 +79,8 @@ function initializeApp() {
     setActiveRaceId(currentRaceId);
   }
 
+  selectPreferredRaceForHome();
+
   initNavigation();
   initAthleteSheet();
   initAppEvents();
@@ -106,8 +110,52 @@ function initAppEvents() {
 
 function connectNavigationRefresh() {
   window.addEventListener("popstate", () => {
+    const activeScreen = document.querySelector(".screen.active");
+
+    if (activeScreen?.id === "home-screen") {
+      selectPreferredRaceForHome();
+    }
+
     render();
   });
+}
+
+function selectPreferredRaceForHome() {
+  const preferredRace = getPreferredOpenRace();
+
+  if (!preferredRace || preferredRace.id === appState.currentRaceId) {
+    return;
+  }
+
+  setCurrentRaceId(preferredRace.id);
+  setActiveRaceId(preferredRace.id);
+}
+
+function getPreferredOpenRace() {
+  const openRaces = appState.races
+    .filter((race) => {
+      const status = getRaceStatusInfo(race);
+
+      return status.key !== "completed" && status.key !== "archived";
+    })
+    .sort(
+      (firstRace, secondRace) =>
+        getRaceStartTimestamp(firstRace) - getRaceStartTimestamp(secondRace),
+    );
+
+  return openRaces[0] || getCurrentRace();
+}
+
+function getRaceStartTimestamp(race) {
+  if (!race?.date) {
+    return Number.MAX_SAFE_INTEGER;
+  }
+
+  const startTime = race.startTime || "23:59";
+
+  const timestamp = new Date(`${race.date}T${startTime}:00`).getTime();
+
+  return Number.isFinite(timestamp) ? timestamp : Number.MAX_SAFE_INTEGER;
 }
 
 /*
