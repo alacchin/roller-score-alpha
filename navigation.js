@@ -1,56 +1,148 @@
 /*
 ==================================================
 GESTIONE SCHERMATE
+Roller Score — Alpha 0.4.6.1
 ==================================================
 */
 
+const APP_HISTORY_KEY = "rollerScore";
+
 let currentScreenId = null;
-let appScreenHistory = [];
+
+/*
+==================================================
+FUNZIONI BASE
+==================================================
+*/
 
 function getActiveScreenId() {
   const activeScreen = document.querySelector(".screen.active");
 
-  return activeScreen ? activeScreen.id : "home-screen";
+  return activeScreen?.id || "home-screen";
 }
+
+function getCurrentHistoryDepth() {
+  const state = window.history.state;
+
+  if (state?.app !== APP_HISTORY_KEY) {
+    return 0;
+  }
+
+  return Number.isInteger(state.depth) ? state.depth : 0;
+}
+
+function activateScreen(screenId) {
+  const targetScreen = document.getElementById(screenId);
+
+  if (!targetScreen) {
+    console.error(`Schermata non trovata: ${screenId}`);
+    return false;
+  }
+
+  document.querySelectorAll(".screen").forEach((screen) => {
+    screen.classList.remove("active");
+  });
+
+  targetScreen.classList.add("active");
+  currentScreenId = screenId;
+
+  window.scrollTo({
+    top: 0,
+    behavior: "auto",
+  });
+
+  return true;
+}
+
+/*
+==================================================
+APERTURA SCHERMATA
+==================================================
+*/
 
 export function showScreen(screenId, options = {}) {
   const { addToHistory = true, replaceHistory = false } = options;
-
-  const screens = document.querySelectorAll(".screen");
 
   const targetScreen = document.getElementById(screenId);
 
   if (!targetScreen) {
     console.error(`Schermata non trovata: ${screenId}`);
-
     return;
   }
 
-  screens.forEach((screen) => {
-    screen.classList.remove("active");
-  });
+  /*
+  Evita di aggiungere due volte la stessa schermata.
+  È importante perché alcuni pulsanti possono essere
+  collegati sia qui sia nei controller dell'app.
+  */
 
-  targetScreen.classList.add("active");
+  if (currentScreenId === screenId && !replaceHistory) {
+    return;
+  }
+
+  const currentDepth = getCurrentHistoryDepth();
 
   if (replaceHistory) {
-    window.history.replaceState({ screenId }, "", window.location.href);
+    window.history.replaceState(
+      {
+        app: APP_HISTORY_KEY,
+        screenId,
+        depth: currentDepth,
+      },
+      "",
+      window.location.href,
+    );
   } else if (addToHistory) {
-    const historyScreenId = window.history.state?.screenId;
-
-    if (historyScreenId !== screenId) {
-      window.history.pushState({ screenId }, "", window.location.href);
-    }
+    window.history.pushState(
+      {
+        app: APP_HISTORY_KEY,
+        screenId,
+        depth: currentDepth + 1,
+      },
+      "",
+      window.location.href,
+    );
   }
 
-  if (currentScreenId && currentScreenId !== screenId) {
-    appScreenHistory.push(currentScreenId);
+  activateScreen(screenId);
+}
+
+/*
+==================================================
+NAVIGAZIONE INDIETRO
+==================================================
+*/
+
+function goBack(fallbackScreenId) {
+  const currentDepth = getCurrentHistoryDepth();
+
+  if (currentDepth > 0) {
+    window.history.back();
+    return;
   }
 
-  currentScreenId = screenId;
+  showScreen(fallbackScreenId, {
+    addToHistory: false,
+    replaceHistory: true,
+  });
+}
 
-  window.scrollTo({
-    top: 0,
-    behavior: "instant",
+function goHome() {
+  const currentDepth = getCurrentHistoryDepth();
+
+  /*
+  Torna direttamente alla prima schermata dell'app
+  senza aggiungere una nuova Home alla cronologia.
+  */
+
+  if (currentDepth > 0) {
+    window.history.go(-currentDepth);
+    return;
+  }
+
+  showScreen("home-screen", {
+    addToHistory: false,
+    replaceHistory: true,
   });
 }
 
@@ -80,15 +172,7 @@ function connectBackButton(buttonId, fallbackScreenId) {
   }
 
   button.addEventListener("click", () => {
-    if (window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-
-    showScreen(fallbackScreenId, {
-      addToHistory: false,
-      replaceHistory: true,
-    });
+    goBack(fallbackScreenId);
   });
 }
 
@@ -100,7 +184,7 @@ function connectHomeButton(buttonId) {
   }
 
   button.addEventListener("click", () => {
-    showScreen("home-screen");
+    goHome();
   });
 }
 
@@ -111,17 +195,19 @@ TASTO INDIETRO TELEFONO / BROWSER
 */
 
 function connectBrowserHistory() {
-  window.addEventListener("popstate", () => {
-    if (appScreenHistory.length === 0) {
+  window.addEventListener("popstate", (event) => {
+    const state = event.state;
+
+    /*
+    Lo stato non appartiene a Roller Score:
+    il browser sta uscendo dalla navigazione interna.
+    */
+
+    if (state?.app !== APP_HISTORY_KEY) {
       return;
     }
 
-    const previousScreen = appScreenHistory.pop();
-
-    showScreen(previousScreen, {
-      addToHistory: false,
-      replaceHistory: true,
-    });
+    activateScreen(state.screenId || "home-screen");
   });
 }
 
@@ -136,9 +222,16 @@ export function initNavigation() {
 
   currentScreenId = initialScreenId;
 
+  /*
+  La prima schermata diventa la radice della
+  navigazione interna dell'app.
+  */
+
   window.history.replaceState(
     {
+      app: APP_HISTORY_KEY,
       screenId: initialScreenId,
+      depth: 0,
     },
     "",
     window.location.href,
@@ -151,7 +244,6 @@ export function initNavigation() {
   */
 
   connectButton("go-new-race", "new-race-screen");
-
   connectButton("go-race-dashboard", "race-dashboard-screen");
 
   /*
@@ -159,7 +251,6 @@ export function initNavigation() {
   */
 
   connectButton("go-acquire-race", "acquire-race-screen");
-
   connectButton("go-manual-race", "manual-race-screen");
 
   connectBackButton("back-home-1", "home-screen");
@@ -181,7 +272,6 @@ export function initNavigation() {
   */
 
   connectButton("go-athlete-list", "athlete-list-screen");
-
   connectHomeButton("back-home-2");
 
   /*
