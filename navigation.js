@@ -113,7 +113,7 @@ NAVIGAZIONE INDIETRO
 ==================================================
 */
 
-function goBack(fallbackScreenId) {
+export function goBack(fallbackScreenId = "home-screen") {
   const currentDepth = getCurrentHistoryDepth();
 
   if (currentDepth > 0) {
