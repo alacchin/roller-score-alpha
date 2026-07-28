@@ -58,6 +58,8 @@ function renderHome(race) {
 
   const raceInfo = document.getElementById("home-race-info");
 
+  const otherRacesCount = document.getElementById("home-other-races-count");
+
   const favoriteName = document.getElementById("home-favorite-athlete");
 
   const favoriteStatus = document.getElementById("home-favorite-live-status");
@@ -67,6 +69,8 @@ function renderHome(race) {
   const favoriteEntryNumber = document.getElementById(
     "home-favorite-entry-number",
   );
+
+  const favoriteCategory = document.getElementById("home-favorite-category");
 
   const categoryStartTime = document.getElementById("home-category-start-time");
 
@@ -79,11 +83,15 @@ function renderHome(race) {
 
     setText(raceInfo, "Premi “Nuova gara” per iniziare");
 
+    setText(otherRacesCount, "Nessun'altra gara programmata");
+
     setText(favoriteName, "⭐ Nessuna atleta preferita");
 
     setText(favoriteStatus, "---");
 
     setText(favoritePosition, "-- atleta di --");
+
+    setText(favoriteCategory, "--");
 
     setText(favoriteEntryNumber, "--");
 
@@ -98,7 +106,11 @@ function renderHome(race) {
 
   setText(raceInfo, buildRaceInfo(race));
 
+  setText(otherRacesCount, formatOtherOpenRacesCount(race));
+
   const favorite = getFavoriteParticipant(race);
+
+  setText(favoriteCategory, race.category || "--");
 
   if (!favorite) {
     setText(favoriteName, "⭐ Nessuna atleta preferita");
@@ -638,10 +650,40 @@ FUNZIONI DI SUPPORTO
 ==================================================
 */
 
+function formatOtherOpenRacesCount(currentRace) {
+  const otherOpenRaces = appState.races.filter((race) => {
+    if (race.id === currentRace.id) {
+      return false;
+    }
+
+    const status = getRaceStatusInfo(race);
+
+    return status.key !== "completed" && status.key !== "archived";
+  });
+
+  if (otherOpenRaces.length === 0) {
+    return "Nessun'altra gara programmata";
+  }
+
+  if (otherOpenRaces.length === 1) {
+    return "＋ 1 altra gara programmata";
+  }
+
+  return `＋ ${otherOpenRaces.length} altre gare programmate`;
+}
+
 function buildRaceInfo(race) {
-  const parts = [race.federation, race.discipline, race.category].filter(
-    Boolean,
-  );
+  const dateLabel = formatRaceDate(race.date);
+
+  const timeLabel = race.startTime ? `Ore ${race.startTime}` : null;
+
+  const parts = [
+    dateLabel !== "--" ? dateLabel : null,
+    timeLabel,
+    race.federation,
+    race.discipline,
+    race.category,
+  ].filter(Boolean);
 
   return parts.join(" • ");
 }
@@ -764,11 +806,15 @@ function getRaceStatusCssClass(status) {
 }
 
 function getRaceTimestamp(race) {
-  if (!race.date) {
+  if (!race?.date) {
     return 0;
   }
 
-  return new Date(race.date).getTime();
+  const startTime = race.startTime || "00:00";
+
+  const timestamp = new Date(`${race.date}T${startTime}:00`).getTime();
+
+  return Number.isFinite(timestamp) ? timestamp : 0;
 }
 
 function formatRaceDate(date) {
