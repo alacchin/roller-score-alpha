@@ -3,9 +3,7 @@ export function createId(prefix = "item") {
     return `${prefix}-${globalThis.crypto.randomUUID()}`;
   }
 
-  return `${prefix}-${Date.now()}-${Math.random()
-    .toString(16)
-    .slice(2)}`;
+  return `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 /*
@@ -24,7 +22,7 @@ export function createAthlete({
   name,
   club = "",
   notes = [],
-  previousResults = []
+  previousResults = [],
 }) {
   const now = new Date().toISOString();
 
@@ -32,14 +30,10 @@ export function createAthlete({
     id,
     name: String(name || "").trim(),
     club: String(club || "").trim(),
-    notes: Array.isArray(notes)
-      ? notes
-      : [],
-    previousResults: Array.isArray(previousResults)
-      ? previousResults
-      : [],
+    notes: Array.isArray(notes) ? notes : [],
+    previousResults: Array.isArray(previousResults) ? previousResults : [],
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   };
 }
 
@@ -67,10 +61,9 @@ export function createParticipant({
   status = "todo",
   notes = [],
   previousResults = [],
-  scores = null
+  scores = null,
 }) {
-  const normalizedEntryNumber =
-    Number(entryNumber);
+  const normalizedEntryNumber = Number(entryNumber);
 
   return {
     id,
@@ -78,27 +71,19 @@ export function createParticipant({
     name: String(name || "").trim(),
     club: String(club || "").trim(),
 
-    entryNumber:
-      normalizedEntryNumber,
+    entryNumber: normalizedEntryNumber,
 
-    order:
-      normalizedEntryNumber,
+    order: normalizedEntryNumber,
 
-    isFavorite:
-      Boolean(isFavorite),
+    isFavorite: Boolean(isFavorite),
 
     status,
 
-    notes: Array.isArray(notes)
-      ? notes
-      : [],
+    notes: Array.isArray(notes) ? notes : [],
 
-    previousResults:
-      Array.isArray(previousResults)
-        ? previousResults
-        : [],
+    previousResults: Array.isArray(previousResults) ? previousResults : [],
 
-    scores
+    scores,
   };
 }
 
@@ -119,55 +104,43 @@ export function createRace({
   startTime,
   minutesPerAthlete = 4,
   participants = [],
-  status = "prepared"
+  status = "prepared",
+  scoringProfile = null,
 }) {
-  const now =
-    new Date().toISOString();
+  const now = new Date().toISOString();
 
-  const sortedParticipants =
-    [...participants].sort(
-      (
-        firstParticipant,
-        secondParticipant
-      ) =>
-        Number(
-          firstParticipant.entryNumber
-        ) -
-        Number(
-          secondParticipant.entryNumber
-        )
-    );
+  const sortedParticipants = [...participants].sort(
+    (firstParticipant, secondParticipant) =>
+      Number(firstParticipant.entryNumber) -
+      Number(secondParticipant.entryNumber),
+  );
 
   return {
     id,
 
-    name:
-      String(name || "").trim(),
+    name: String(name || "").trim(),
 
     date,
 
-    location:
-      String(location || "").trim(),
+    location: String(location || "").trim(),
 
     federation,
     discipline,
 
-    category:
-      String(category || "").trim(),
+    category: String(category || "").trim(),
 
     startTime,
 
-    minutesPerAthlete:
-      Number(minutesPerAthlete),
+    minutesPerAthlete: Number(minutesPerAthlete),
 
-    participants:
-      sortedParticipants,
+    participants: sortedParticipants,
 
-    status:
-      normalizeRaceStatus(status),
+    status: normalizeRaceStatus(status),
+
+    scoringProfile: normalizeScoringProfile(scoringProfile),
 
     createdAt: now,
-    updatedAt: now
+    updatedAt: now,
   };
 }
 
@@ -181,30 +154,18 @@ export function createScore({
   technical = [],
   artistic = [],
   penalty = null,
-  note = ""
+  note = "",
 }) {
   return {
-    technical:
-      Array.isArray(technical)
-        ? technical
-        : [],
+    technical: Array.isArray(technical) ? technical : [],
 
-    artistic:
-      Array.isArray(artistic)
-        ? artistic
-        : [],
+    artistic: Array.isArray(artistic) ? artistic : [],
 
-    penalty:
-      penalty === null ||
-        penalty === ""
-        ? null
-        : Number(penalty),
+    penalty: penalty === null || penalty === "" ? null : Number(penalty),
 
-    note:
-      String(note || "").trim(),
+    note: String(note || "").trim(),
 
-    savedAt:
-      new Date().toISOString()
+    savedAt: new Date().toISOString(),
   };
 }
 
@@ -214,31 +175,16 @@ FUNZIONI DI SUPPORTO
 ==================================================
 */
 
-export function sortParticipantsByEntryNumber(
-  participants = []
-) {
+export function sortParticipantsByEntryNumber(participants = []) {
   return [...participants].sort(
-    (
-      firstParticipant,
-      secondParticipant
-    ) =>
-      Number(
-        firstParticipant.entryNumber
-      ) -
-      Number(
-        secondParticipant.entryNumber
-      )
+    (firstParticipant, secondParticipant) =>
+      Number(firstParticipant.entryNumber) -
+      Number(secondParticipant.entryNumber),
   );
 }
 
-export function normalizeParticipant(
-  participant
-) {
-  const entryNumber =
-    Number(
-      participant.entryNumber ??
-      participant.order
-    );
+export function normalizeParticipant(participant) {
+  const entryNumber = Number(participant.entryNumber ?? participant.order);
 
   return {
     ...participant,
@@ -246,178 +192,168 @@ export function normalizeParticipant(
     entryNumber,
     order: entryNumber,
 
-    isFavorite:
-      Boolean(
-        participant.isFavorite
-      ),
+    isFavorite: Boolean(participant.isFavorite),
 
-    notes:
-      Array.isArray(
-        participant.notes
-      )
-        ? participant.notes
-        : [],
+    notes: Array.isArray(participant.notes) ? participant.notes : [],
 
-    previousResults:
-      Array.isArray(
-        participant.previousResults
-      )
-        ? participant.previousResults
-        : [],
+    previousResults: Array.isArray(participant.previousResults)
+      ? participant.previousResults
+      : [],
 
-    status:
-      participant.status ||
-      "todo",
+    status: participant.status || "todo",
 
-    scores:
-      participant.scores ||
-      null
+    scores: participant.scores || null,
   };
 }
 
-export function normalizeRace(
-  race
-) {
-  const participants =
-    race.participants ||
-    race.athletes ||
-    [];
+export function normalizeRace(race) {
+  const participants = race.participants || race.athletes || [];
 
-  const normalizedParticipants =
-    sortParticipantsByEntryNumber(
-      participants.map(
-        normalizeParticipant
-      )
-    );
+  const normalizedParticipants = sortParticipantsByEntryNumber(
+    participants.map(normalizeParticipant),
+  );
 
   return {
     ...race,
 
-    minutesPerAthlete:
-      Number(
-        race.minutesPerAthlete ||
-        4
-      ),
+    minutesPerAthlete: Number(race.minutesPerAthlete || 4),
 
-    participants:
-      normalizedParticipants,
+    participants: normalizedParticipants,
+    status: getNormalizedRaceStatus(race, normalizedParticipants),
 
-    status:
-      getNormalizedRaceStatus(
-        race,
-        normalizedParticipants
-      ),
+    scoringProfile: normalizeScoringProfile(race.scoringProfile),
 
-    updatedAt:
-      race.updatedAt ||
-      race.createdAt ||
-      new Date().toISOString()
+    updatedAt: race.updatedAt || race.createdAt || new Date().toISOString(),
   };
 }
 
-export function normalizeAthlete(
-  athlete
-) {
+export function normalizeAthlete(athlete) {
   return {
     ...athlete,
 
-    name:
-      String(
-        athlete.name || ""
-      ).trim(),
+    name: String(athlete.name || "").trim(),
 
-    club:
-      String(
-        athlete.club || ""
-      ).trim(),
+    club: String(athlete.club || "").trim(),
 
-    notes:
-      Array.isArray(
-        athlete.notes
-      )
-        ? athlete.notes
-        : [],
+    notes: Array.isArray(athlete.notes) ? athlete.notes : [],
 
-    previousResults:
-      Array.isArray(
-        athlete.previousResults
-      )
-        ? athlete.previousResults
-        : []
+    previousResults: Array.isArray(athlete.previousResults)
+      ? athlete.previousResults
+      : [],
   };
 }
 
+/*
+==================================================
+PROFILO DI PUNTEGGIO
+==================================================
+*/
+
+export function createDefaultScoringProfile() {
+  return {
+    id: "white-base-2026",
+    name: "White Base 2026",
+
+    system: "white",
+
+    judgeCount: 3,
+
+    technicalMethod: "judge-score",
+    artisticMethod: "judge-score",
+
+    penaltyMethod: "subtract-from-total",
+
+    decimals: 2,
+
+    rankingMethod: "white",
+
+    tieBreakers: ["artistic", "technical", "ex-aequo"],
+
+    isCustom: false,
+  };
+}
+
+export function normalizeScoringProfile(scoringProfile) {
+  const defaultProfile = createDefaultScoringProfile();
+
+  if (!scoringProfile || typeof scoringProfile !== "object") {
+    return defaultProfile;
+  }
+
+  const judgeCount = Number(scoringProfile.judgeCount);
+
+  const decimals = Number(scoringProfile.decimals);
+
+  return {
+    ...defaultProfile,
+    ...scoringProfile,
+
+    id:
+      String(scoringProfile.id || defaultProfile.id).trim() ||
+      defaultProfile.id,
+
+    name:
+      String(scoringProfile.name || defaultProfile.name).trim() ||
+      defaultProfile.name,
+
+    judgeCount:
+      Number.isInteger(judgeCount) && judgeCount > 0
+        ? judgeCount
+        : defaultProfile.judgeCount,
+
+    decimals:
+      Number.isInteger(decimals) && decimals >= 0 && decimals <= 4
+        ? decimals
+        : defaultProfile.decimals,
+
+    tieBreakers: Array.isArray(scoringProfile.tieBreakers)
+      ? [...scoringProfile.tieBreakers]
+      : [...defaultProfile.tieBreakers],
+
+    isCustom: Boolean(scoringProfile.isCustom),
+  };
+}
 /*
 ==================================================
 NORMALIZZAZIONE STATO GARA
 ==================================================
 */
 
-function getNormalizedRaceStatus(
-  race,
-  participants
-) {
-  const savedStatus =
-    normalizeRaceStatus(
-      race.status
-    );
+function getNormalizedRaceStatus(race, participants) {
+  const savedStatus = normalizeRaceStatus(race.status);
 
   /*
   Lo stato archiviato è manuale e deve essere
   conservato anche se la gara viene modificata.
   */
 
-  if (
-    savedStatus ===
-    "archived"
-  ) {
+  if (savedStatus === "archived") {
     return "archived";
   }
 
-  if (
-    participants.length === 0
-  ) {
+  if (participants.length === 0) {
     return "prepared";
   }
 
-  const completedCount =
-    participants.filter(
-      (participant) =>
-        participant.status ===
-        "completed"
-    ).length;
+  const completedCount = participants.filter(
+    (participant) => participant.status === "completed",
+  ).length;
 
-  if (
-    completedCount === 0
-  ) {
+  if (completedCount === 0) {
     return "prepared";
   }
 
-  if (
-    completedCount ===
-    participants.length
-  ) {
+  if (completedCount === participants.length) {
     return "completed";
   }
 
   return "in-progress";
 }
 
-function normalizeRaceStatus(
-  status
-) {
-  const validStatuses = [
-    "prepared",
-    "in-progress",
-    "completed",
-    "archived"
-  ];
+function normalizeRaceStatus(status) {
+  const validStatuses = ["prepared", "in-progress", "completed", "archived"];
 
-  if (
-    validStatuses.includes(
-      status
-    )
-  ) {
+  if (validStatuses.includes(status)) {
     return status;
   }
 
@@ -431,11 +367,8 @@ function normalizeRaceStatus(
     ready: "prepared",
     current: "in-progress",
     started: "in-progress",
-    finished: "completed"
+    finished: "completed",
   };
 
-  return (
-    legacyStatusMap[status] ||
-    "prepared"
-  );
+  return legacyStatusMap[status] || "prepared";
 }

@@ -940,3 +940,51 @@ button:disabled {
   font-size: 0.9rem;
   font-weight: 600;
 }
+
+/*
+=====================================
+CLASSIFICA LIVE - INSERIMENTO PUNTEGGI
+=====================================
+*/
+
+.score-ranking-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 16px 0;
+  padding: 16px;
+  border: 1px solid #374151;
+  border-radius: 14px;
+  background: #111827;
+}
+
+.score-ranking-card > div {
+  display: grid;
+  gap: 6px;
+}
+
+.score-ranking-label,
+.score-ranking-total-wrap span {
+  color: #9ca3af;
+  font-size: 0.85rem;
+}
+
+#score-ranking-position {
+  color: #f9fafb;
+  font-size: 1.3rem;
+}
+
+.score-ranking-total-wrap {
+  min-width: 72px;
+  text-align: right;
+}
+
+#score-ranking-total {
+  color: #60a5fa;
+  font-size: 1.5rem;
+}
+
+.score-ranking-card.ranking-evaluated {
+  border-color: #3b82f6;
+}
