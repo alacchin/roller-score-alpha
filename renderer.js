@@ -1,4 +1,10 @@
 import {
+  calculateRanking,
+  getFavoriteRanking,
+  getParticipantRanking,
+} from "./ranking.js";
+
+import {
   appState,
   getCurrentRace,
   getCurrentParticipant,
@@ -515,6 +521,8 @@ function renderScoreEntry(race, participant) {
     return;
   }
 
+  renderScoreEntryRanking(race, participant);
+
   setTextById(
     "score-entry-athlete-name",
     participant.isFavorite ? `⭐ ${participant.name}` : participant.name,
@@ -567,6 +575,12 @@ function renderScoreEntry(race, participant) {
 }
 
 function renderEmptyScoreEntry() {
+  setTextById("score-ranking-position", "In attesa");
+
+  setTextById("score-ranking-total", "--");
+  document
+    .getElementById("score-ranking-card")
+    ?.classList.remove("ranking-evaluated");
   setTextById("score-entry-order", "-- atleta di --");
 
   setTextById("score-entry-athlete-name", "Nessuna atleta");
@@ -578,6 +592,45 @@ function renderEmptyScoreEntry() {
   setTextById("score-entry-status-label", "Da fare");
 
   clearScoreInputs();
+}
+
+function renderScoreEntryRanking(race, participant) {
+  const rankingCard = document.getElementById("score-ranking-card");
+
+  const positionElement = document.getElementById("score-ranking-position");
+
+  const totalElement = document.getElementById("score-ranking-total");
+
+  if (!rankingCard || !positionElement || !totalElement) {
+    return;
+  }
+
+  const rankingResult = getParticipantRanking(race, participant.id);
+
+  if (!rankingResult?.isEvaluated) {
+    positionElement.textContent = "In attesa";
+    totalElement.textContent = "--";
+
+    rankingCard.classList.remove("ranking-evaluated");
+
+    return;
+  }
+
+  const evaluatedCount = calculateRanking(race).filter(
+    (result) => result.isEvaluated,
+  ).length;
+
+  positionElement.textContent = formatRankingPosition(
+    rankingResult.position,
+    evaluatedCount,
+  );
+
+  totalElement.textContent = formatRankingTotal(
+    rankingResult.total,
+    race?.scoringProfile?.decimals,
+  );
+
+  rankingCard.classList.add("ranking-evaluated");
 }
 
 /*
@@ -856,4 +909,29 @@ function escapeHtml(value = "") {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function formatRankingPosition(position, evaluatedCount) {
+  if (!position) {
+    return "In attesa";
+  }
+
+  const ordinal = `${position}ª`;
+
+  return `${ordinal} su ${evaluatedCount}`;
+}
+
+function formatRankingTotal(total, decimals = 2) {
+  if (!Number.isFinite(Number(total))) {
+    return "--";
+  }
+
+  const validDecimals =
+    Number.isInteger(Number(decimals)) &&
+    Number(decimals) >= 0 &&
+    Number(decimals) <= 4
+      ? Number(decimals)
+      : 2;
+
+  return Number(total).toFixed(validDecimals);
 }
