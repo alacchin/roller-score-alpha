@@ -234,6 +234,14 @@
           </button>
 
           <button
+            id="go-ranking-dashboard"
+            class="secondary-button"
+            type="button"
+          >
+            🏆 Classifica
+          </button>
+
+          <button
             id="go-score-entry-dashboard"
             class="secondary-button"
             type="button"
@@ -345,6 +353,14 @@
             </div>
           </div>
 
+          <button
+            id="go-ranking-score-entry"
+            class="ghost-button"
+            type="button"
+          >
+            🏆 Apri classifica
+          </button>
+
           <div class="score-nav-grid">
             <button id="previous-athlete" class="ghost-button" type="button">
               ← Precedente
@@ -451,6 +467,46 @@
 
           <button id="back-athlete-list-1" class="ghost-button" type="button">
             ← Torna all'elenco
+          </button>
+        </section>
+      </section>
+
+      <!-- =====================================
+     CLASSIFICA LIVE
+====================================== -->
+
+      <section id="ranking-screen" class="screen">
+        <section class="card">
+          <p class="label">CLASSIFICA LIVE</p>
+
+          <h2 id="ranking-race-name">---</h2>
+
+          <p id="ranking-race-info" class="muted">---</p>
+
+          <div class="ranking-summary">
+            <div>
+              <span>Valutate</span>
+
+              <strong id="ranking-evaluated-count">0 / 0</strong>
+            </div>
+
+            <div>
+              <span>Stato</span>
+
+              <strong id="ranking-race-status">Preparata</strong>
+            </div>
+          </div>
+
+          <div id="ranking-list-container" class="ranking-list"></div>
+
+          <div class="ranking-legend">
+            <span>⭐ La nostra atleta</span>
+
+            <span>— In attesa</span>
+          </div>
+
+          <button id="back-from-ranking" class="ghost-button" type="button">
+            ← Indietro
           </button>
         </section>
       </section>

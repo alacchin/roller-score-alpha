@@ -272,6 +272,7 @@ export function initNavigation() {
   */
 
   connectButton("go-athlete-list", "athlete-list-screen");
+  connectButton("go-ranking-dashboard", "ranking-screen");
   connectHomeButton("back-home-2");
 
   /*
@@ -284,5 +285,12 @@ export function initNavigation() {
   INSERIMENTO PUNTEGGI
   */
 
+  connectButton("go-ranking-score-entry", "ranking-screen");
   connectBackButton("back-athlete-list-1", "athlete-list-screen");
+
+  /*
+CLASSIFICA
+*/
+
+  connectBackButton("back-from-ranking", "race-dashboard-screen");
 }
