@@ -41,10 +41,13 @@ export function render() {
     renderEmptyDashboard();
     renderEmptyAthleteList();
     renderEmptyScoreEntry();
+    renderEmptyRanking();
     return;
   }
 
   renderDashboard(currentRace);
+
+  renderRanking(currentRace);
 
   renderAthleteList(currentRace);
 
@@ -416,6 +419,144 @@ function renderEmptyDashboard() {
   setTextById("dashboard-todo-count", "0");
 
   setTextById("dashboard-missing-count", "0");
+}
+
+/*
+==================================================
+CLASSIFICA LIVE
+==================================================
+*/
+
+function renderRanking(race) {
+  const raceNameElement = document.getElementById("ranking-race-name");
+
+  const raceInfoElement = document.getElementById("ranking-race-info");
+
+  const evaluatedCountElement = document.getElementById(
+    "ranking-evaluated-count",
+  );
+
+  const raceStatusElement = document.getElementById("ranking-race-status");
+
+  const container = document.getElementById("ranking-list-container");
+
+  if (
+    !raceNameElement ||
+    !raceInfoElement ||
+    !evaluatedCountElement ||
+    !raceStatusElement ||
+    !container
+  ) {
+    return;
+  }
+
+  const ranking = calculateRanking(race);
+
+  const evaluatedCount = ranking.filter((result) => result.isEvaluated).length;
+
+  const totalCount = ranking.length;
+
+  const raceStatus = getRaceStatusInfo(race);
+
+  setText(raceNameElement, race.name || "Gara");
+
+  setText(raceInfoElement, buildRaceInfo(race));
+
+  setText(evaluatedCountElement, `${evaluatedCount} / ${totalCount}`);
+
+  setText(raceStatusElement, `${raceStatus.icon} ${raceStatus.label}`);
+
+  if (ranking.length === 0) {
+    container.innerHTML = `
+      <p class="small-muted">
+        Nessuna atleta presente nella gara.
+      </p>
+    `;
+
+    return;
+  }
+
+  container.innerHTML = ranking
+    .map((result) => buildRankingRow(result, race))
+    .join("");
+}
+
+function buildRankingRow(result, race) {
+  const favoriteClass = result.isFavorite ? " ranking-row-favorite" : "";
+
+  const pendingClass = result.isEvaluated ? "" : " ranking-row-pending";
+
+  const positionLabel = result.isEvaluated
+    ? formatFullRankingPosition(result.position)
+    : "—";
+
+  const medal = result.isEvaluated ? getRankingMedal(result.position) : "";
+
+  const favoriteStar = result.isFavorite ? "⭐ " : "";
+
+  const totalLabel = result.isEvaluated
+    ? formatRankingTotal(result.total, race?.scoringProfile?.decimals)
+    : "In attesa";
+
+  return `
+    <article class="ranking-row${favoriteClass}${pendingClass}">
+      <div class="ranking-position">
+        <strong>${medal}${escapeHtml(positionLabel)}</strong>
+      </div>
+
+      <div class="ranking-athlete">
+        <strong>
+          ${favoriteStar}${escapeHtml(result.name || "Atleta")}
+        </strong>
+
+        <span>
+          ${escapeHtml(result.club || "Società non indicata")}
+        </span>
+      </div>
+
+      <div class="ranking-total">
+        <strong>${escapeHtml(totalLabel)}</strong>
+
+        ${
+          result.isEvaluated
+            ? `
+              <span>
+                T ${formatRankingTotal(
+                  result.technicalTotal,
+                  race?.scoringProfile?.decimals,
+                )}
+                ·
+                A ${formatRankingTotal(
+                  result.artisticTotal,
+                  race?.scoringProfile?.decimals,
+                )}
+              </span>
+            `
+            : ""
+        }
+      </div>
+    </article>
+  `;
+}
+
+function renderEmptyRanking() {
+  setTextById("ranking-race-name", "Nessuna gara");
+
+  setTextById("ranking-race-info", "---");
+
+  setTextById("ranking-evaluated-count", "0 / 0");
+
+  setTextById("ranking-race-status", "Preparata");
+
+  const container = document.getElementById("ranking-list-container");
+
+  if (container) {
+    container.innerHTML = `
+      <p class="small-muted">
+        Crea o apri una gara per visualizzare la classifica.
+      </p>
+    `;
+  }
 }
 
 /*
@@ -934,4 +1075,22 @@ function formatRankingTotal(total, decimals = 2) {
       : 2;
 
   return Number(total).toFixed(validDecimals);
+
+  function formatFullRankingPosition(position) {
+    if (!position) {
+      return "—";
+    }
+
+    return `${position}ª`;
+  }
+
+  function getRankingMedal(position) {
+    const medals = {
+      1: "🥇 ",
+      2: "🥈 ",
+      3: "🥉 ",
+    };
+
+    return medals[position] || "";
+  }
 }
