@@ -40,7 +40,7 @@ import {
   goToNextParticipant,
 } from "./raceController.js";
 
-import { saveCurrentScore } from "./scoreController.js";
+import { clearCurrentScore, saveCurrentScore } from "./scoreController.js";
 
 import { initAthleteSheet } from "./athleteSheet.js";
 
@@ -456,6 +456,22 @@ function connectScoreButtons() {
   document
     .getElementById("save-and-next-athlete")
     ?.addEventListener("click", saveCurrentScore);
+
+  document
+    .getElementById("clear-current-score")
+    ?.addEventListener("click", () => {
+      const confirmed = window.confirm(
+        "Eliminare i punteggi salvati per questa atleta?\n\n" +
+          "L’atleta tornerà nello stato “Da fare” " +
+          "e verrà rimossa dalla classifica.",
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      clearCurrentScore();
+    });
 }
 
 /*

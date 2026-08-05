@@ -1,30 +1,19 @@
-import {
-  createScore
-} from "./models.js";
+import { createScore } from "./models.js";
 
 import {
   appState,
   getCurrentRace,
   getCurrentParticipant,
-  getParticipants
+  getParticipants,
 } from "./state.js";
 
-import {
-  saveRaces
-} from "./storage.js";
+import { saveRaces } from "./storage.js";
 
-import {
-  updateRaceStatus
-} from "./raceUtils.js";
+import { updateRaceStatus } from "./raceUtils.js";
 
-import {
-  goToNextParticipant,
-  openRaceDashboard
-} from "./raceController.js";
+import { goToNextParticipant, openRaceDashboard } from "./raceController.js";
 
-import {
-  render
-} from "./renderer.js";
+import { render } from "./renderer.js";
 
 /*
 ==================================================
@@ -33,104 +22,54 @@ SALVATAGGIO PUNTEGGI
 */
 
 export function saveCurrentScore() {
-  const currentRace =
-    getCurrentRace();
+  const currentRace = getCurrentRace();
 
-  const currentParticipant =
-    getCurrentParticipant();
+  const currentParticipant = getCurrentParticipant();
 
-  if (
-    !currentRace ||
-    !currentParticipant
-  ) {
-    alert(
-      "Nessuna partecipante selezionata."
-    );
+  if (!currentRace || !currentParticipant) {
+    alert("Nessuna partecipante selezionata.");
 
     return;
   }
 
-  const technicalScores =
-    readScoreInputs(
-      "[data-score-technical]"
-    );
+  const technicalScores = readScoreInputs("[data-score-technical]");
 
-  const artisticScores =
-    readScoreInputs(
-      "[data-score-artistic]"
-    );
+  const artisticScores = readScoreInputs("[data-score-artistic]");
 
-  if (
-    technicalScores.includes(
-      null
-    ) ||
-    artisticScores.includes(
-      null
-    )
-  ) {
-    alert(
-      "Inserisci tutti i punteggi tecnico e artistico."
-    );
+  if (technicalScores.includes(null) || artisticScores.includes(null)) {
+    alert("Inserisci tutti i punteggi tecnico e artistico.");
 
     return;
   }
 
-  const penalty =
-    readPenalty();
+  const penalty = readPenalty();
 
-  const note =
-    readNote();
+  const note = readNote();
 
-  currentParticipant.scores =
-    createScore({
-      technical:
-        technicalScores,
+  currentParticipant.scores = createScore({
+    technical: technicalScores,
+    artistic: artisticScores,
+    penalty,
+    note,
+  });
 
-      artistic:
-        artisticScores,
+  currentParticipant.status = "completed";
 
-      penalty,
+  const nextParticipant = getNextParticipant(currentRace, currentParticipant);
 
-      note
-    });
+  if (nextParticipant && nextParticipant.status !== "completed") {
+    resetOtherCurrentParticipants(currentRace, nextParticipant.id);
 
-  currentParticipant.status =
-    "completed";
-
-  const nextParticipant =
-    getNextParticipant(
-      currentRace,
-      currentParticipant
-    );
-
-  if (
-    nextParticipant &&
-    nextParticipant.status !==
-    "completed"
-  ) {
-    resetOtherCurrentParticipants(
-      currentRace,
-      nextParticipant.id
-    );
-
-    nextParticipant.status =
-      "current";
+    nextParticipant.status = "current";
   }
 
-  updateRaceStatus(
-    currentRace
-  );
+  updateRaceStatus(currentRace);
 
-  currentRace.updatedAt =
-    new Date().toISOString();
+  currentRace.updatedAt = new Date().toISOString();
 
-  saveRaces(
-    appState.races
-  );
+  saveRaces(appState.races);
 
-  if (
-    nextParticipant
-  ) {
+  if (nextParticipant) {
     render();
 
     goToNextParticipant();
@@ -139,8 +78,46 @@ export function saveCurrentScore() {
   }
 
   openRaceDashboard({
-    replaceHistory: true
+    replaceHistory: true,
   });
+}
+
+/*
+==================================================
+AZZERAMENTO VALUTAZIONE
+==================================================
+*/
+
+export function clearCurrentScore() {
+  const currentRace = getCurrentRace();
+
+  const currentParticipant = getCurrentParticipant();
+
+  if (!currentRace || !currentParticipant) {
+    alert("Nessuna partecipante selezionata.");
+
+    return false;
+  }
+
+  if (!currentParticipant.scores) {
+    alert("Questa atleta non ha una valutazione da azzerare.");
+
+    return false;
+  }
+
+  currentParticipant.scores = null;
+
+  currentParticipant.status = "todo";
+
+  updateRaceStatus(currentRace);
+
+  currentRace.updatedAt = new Date().toISOString();
+
+  saveRaces(appState.races);
+
+  render();
+
+  return true;
 }
 
 /*
@@ -149,50 +126,24 @@ LETTURA PUNTEGGI
 ==================================================
 */
 
-function readScoreInputs(
-  selector
-) {
-  return Array.from(
-    document.querySelectorAll(
-      selector
-    )
-  ).map(
-    (input) => {
-      const cleanValue =
-        cleanScoreValue(
-          input.value
-        );
+function readScoreInputs(selector) {
+  return Array.from(document.querySelectorAll(selector)).map((input) => {
+    const cleanValue = cleanScoreValue(input.value);
 
-      input.value =
-        cleanValue;
+    input.value = cleanValue;
 
-      if (
-        cleanValue === ""
-      ) {
-        return null;
-      }
-
-      return Number(
-        cleanValue
-      );
+    if (cleanValue === "") {
+      return null;
     }
-  );
+
+    return Number(cleanValue);
+  });
 }
 
-function cleanScoreValue(
-  value
-) {
-  return String(
-    value || ""
-  )
-    .replace(
-      /\D/g,
-      ""
-    )
-    .slice(
-      0,
-      2
-    );
+function cleanScoreValue(value) {
+  return String(value || "")
+    .replace(/\D/g, "")
+    .slice(0, 2);
 }
 
 /*
@@ -202,36 +153,21 @@ PENALITÀ
 */
 
 function readPenalty() {
-  const penaltyInput =
-    document.getElementById(
-      "score-penalty"
-    );
+  const penaltyInput = document.getElementById("score-penalty");
 
-  if (
-    !penaltyInput
-  ) {
+  if (!penaltyInput) {
     return null;
   }
 
-  const value =
-    String(
-      penaltyInput.value || ""
-    ).trim();
+  const value = String(penaltyInput.value || "").trim();
 
-  if (
-    value === ""
-  ) {
+  if (value === "") {
     return null;
   }
 
-  const numericValue =
-    Number(value);
+  const numericValue = Number(value);
 
-  return Number.isFinite(
-    numericValue
-  )
-    ? numericValue
-    : null;
+  return Number.isFinite(numericValue) ? numericValue : null;
 }
 
 /*
@@ -241,14 +177,9 @@ NOTA PRESTAZIONE
 */
 
 function readNote() {
-  const noteInput =
-    document.getElementById(
-      "score-note"
-    );
+  const noteInput = document.getElementById("score-note");
 
-  return String(
-    noteInput?.value || ""
-  ).trim();
+  return String(noteInput?.value || "").trim();
 }
 
 /*
@@ -257,33 +188,18 @@ PARTECIPANTE SUCCESSIVA
 ==================================================
 */
 
-function getNextParticipant(
-  race,
-  participant
-) {
-  const participants =
-    getParticipants(
-      race
-    );
+function getNextParticipant(race, participant) {
+  const participants = getParticipants(race);
 
-  const currentIndex =
-    participants.findIndex(
-      (item) =>
-        item.id ===
-        participant.id
-    );
+  const currentIndex = participants.findIndex(
+    (item) => item.id === participant.id,
+  );
 
-  if (
-    currentIndex < 0
-  ) {
+  if (currentIndex < 0) {
     return null;
   }
 
-  return (
-    participants[
-    currentIndex + 1
-    ] || null
-  );
+  return participants[currentIndex + 1] || null;
 }
 
 /*
@@ -297,28 +213,14 @@ alla volta.
 Le partecipanti completate non vengono modificate.
 */
 
-function resetOtherCurrentParticipants(
-  race,
-  nextParticipantId
-) {
-  getParticipants(
-    race
-  ).forEach(
-    (participant) => {
-      if (
-        participant.id ===
-        nextParticipantId
-      ) {
-        return;
-      }
-
-      if (
-        participant.status ===
-        "current"
-      ) {
-        participant.status =
-          "todo";
-      }
+function resetOtherCurrentParticipants(race, nextParticipantId) {
+  getParticipants(race).forEach((participant) => {
+    if (participant.id === nextParticipantId) {
+      return;
     }
-  );
+
+    if (participant.status === "current") {
+      participant.status = "todo";
+    }
+  });
 }

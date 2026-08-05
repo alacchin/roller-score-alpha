@@ -830,6 +830,12 @@ function renderScoreEntry(race, participant) {
     noteInput.value = participant.scores?.note ?? "";
   }
 
+  const clearScoreButton = document.getElementById("clear-current-score");
+
+  if (clearScoreButton) {
+    clearScoreButton.hidden = !participant.scores;
+  }
+
   updateNavigationButtons(race, participant);
 }
 
@@ -849,6 +855,12 @@ function renderEmptyScoreEntry() {
   setTextById("score-entry-notes-count", "📝 Nessuna nota");
 
   setTextById("score-entry-status-label", "Da fare");
+
+  const clearScoreButton = document.getElementById("clear-current-score");
+
+  if (clearScoreButton) {
+    clearScoreButton.hidden = true;
+  }
 
   clearScoreInputs();
 }
