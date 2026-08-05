@@ -263,6 +263,12 @@ function renderRaceList(races = []) {
 
     const participants = getParticipants(race);
 
+    const favoriteRanking = getFavoriteRanking(race);
+
+    const showFavoritePlacement =
+      (status.key === "completed" || status.key === "archived") &&
+      favoriteRanking?.isEvaluated;
+
     const completedCount = participants.filter(
       (participant) => participant.status === "completed",
     ).length;
@@ -307,6 +313,21 @@ function renderRaceList(races = []) {
         </div>
 
         ${
+          showFavoritePlacement
+            ? `
+      <div class="race-card-favorite-result">
+        ⭐ La nostra atleta:
+        <strong>
+          ${formatFullRankingPosition(
+            favoriteRanking.position,
+          )} su ${participants.length}
+        </strong>
+      </div>
+    `
+            : ""
+        }
+
+        ${
           status.key === "in-progress"
             ? `
               <div class="race-card-progress">
@@ -347,6 +368,8 @@ function renderDashboard(race) {
   setTextById("dashboard-race-info", buildRaceInfo(race));
 
   const raceStatus = getRaceStatusInfo(race);
+
+  updateDashboardPrimaryButton(raceStatus);
 
   setTextById(
     "dashboard-race-status",
@@ -420,6 +443,23 @@ function renderEmptyDashboard() {
   setTextById("dashboard-todo-count", "0");
 
   setTextById("dashboard-missing-count", "0");
+}
+
+function updateDashboardPrimaryButton(raceStatus) {
+  const button = document.getElementById("go-score-entry-dashboard");
+
+  if (!button) {
+    return;
+  }
+
+  const buttonLabels = {
+    prepared: "▶ Inizia gara",
+    "in-progress": "▶ Continua gara",
+    completed: "🔎 Riapri punteggi",
+    archived: "🔎 Rivedi punteggi",
+  };
+
+  button.textContent = buttonLabels[raceStatus?.key] || "▶ Inizia gara";
 }
 
 /*
