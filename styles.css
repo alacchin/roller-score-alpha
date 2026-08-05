@@ -789,7 +789,8 @@ button.athlete-row {
 .primary-button,
 .secondary-button,
 .new-race-button,
-.ghost-button {
+.ghost-button,
+.danger-button {
   width: 100%;
   min-height: 48px;
   padding: 14px 16px;
@@ -823,6 +824,22 @@ button.athlete-row {
   background: transparent;
   color: #9ca3af;
   border: 1px solid #374151;
+}
+
+.danger-button {
+  background: transparent;
+  color: #f87171;
+  border: 1px solid #ef4444;
+  font-weight: 600;
+}
+
+.danger-button:hover {
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.danger-button:active {
+  background: rgba(239, 68, 68, 0.18);
+  transform: scale(0.99);
 }
 
 #cancel-race-edit-button {

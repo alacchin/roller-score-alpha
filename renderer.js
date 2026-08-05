@@ -402,6 +402,12 @@ function renderDashboard(race) {
 
   const favorite = getFavoriteParticipant(race);
 
+  const favoriteCard = document.getElementById("dashboard-favorite-card");
+
+  if (favoriteCard) {
+    favoriteCard.hidden = !favorite;
+  }
+
   if (!favorite) {
     setTextById("dashboard-favorite-position", "-- atleta di --");
 
