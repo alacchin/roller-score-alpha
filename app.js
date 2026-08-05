@@ -101,11 +101,50 @@ function initAppEvents() {
   connectRaceButtons();
   connectScoreButtons();
   connectAthleteList();
+  connectRankingList();
   connectRaceForm();
   connectParticipantForm();
   connectAthleteSearch();
   connectAthleteArchiveSelection();
   connectNavigationRefresh();
+}
+
+/*
+==================================================
+CLASSIFICA LIVE
+==================================================
+*/
+
+function connectRankingList() {
+  const rankingList = document.getElementById("ranking-list-container");
+
+  if (!rankingList) {
+    return;
+  }
+
+  rankingList.addEventListener("click", (event) => {
+    const rankingRow = event.target.closest("[data-ranking-participant-id]");
+
+    if (!rankingRow) {
+      return;
+    }
+
+    const isExpanded = rankingRow.classList.contains("ranking-row-expanded");
+
+    rankingList.querySelectorAll(".ranking-row-expanded").forEach((row) => {
+      row.classList.remove("ranking-row-expanded");
+
+      row.setAttribute("aria-expanded", "false");
+    });
+
+    if (isExpanded) {
+      return;
+    }
+
+    rankingRow.classList.add("ranking-row-expanded");
+
+    rankingRow.setAttribute("aria-expanded", "true");
+  });
 }
 
 function connectNavigationRefresh() {

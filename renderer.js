@@ -457,6 +457,8 @@ function renderRanking(race) {
 
   const raceStatus = getRaceStatusInfo(race);
 
+  renderRankingLegend(race);
+
   setText(raceNameElement, race.name || "Gara");
 
   setText(raceInfoElement, buildRaceInfo(race));
@@ -495,46 +497,167 @@ function buildRankingRow(result) {
     ? formatRankingTotal(result.total)
     : "In attesa";
 
+  const expandableAttributes = result.isEvaluated
+    ? `
+        data-ranking-participant-id="${escapeHtml(result.participantId)}"
+        role="button"
+        tabindex="0"
+        aria-expanded="false"
+      `
+    : "";
+
   return `
-    <article class="ranking-row${favoriteClass}${pendingClass}">
-      <div class="ranking-position">
-        <strong>
-          ${medal}${escapeHtml(positionLabel)}
-        </strong>
+    <article
+      class="ranking-row${favoriteClass}${pendingClass}"
+      ${expandableAttributes}
+    >
+      <div class="ranking-row-summary">
+        <div class="ranking-position">
+          <strong>
+            ${medal}${escapeHtml(positionLabel)}
+          </strong>
+        </div>
+
+        <div class="ranking-athlete">
+          <strong>
+            ${favoriteStar}${escapeHtml(result.name || "Atleta")}
+          </strong>
+
+          <span>
+            ${escapeHtml(result.club || "Società non indicata")}
+          </span>
+        </div>
+
+        <div class="ranking-total">
+          <strong>
+            ${escapeHtml(totalLabel)}
+          </strong>
+
+          ${
+            result.isEvaluated
+              ? `
+                <span>
+                  T ${formatRankingTotal(result.technicalTotal)}
+                  ·
+                  A ${formatRankingTotal(result.artisticTotal)}
+                </span>
+              `
+              : ""
+          }
+        </div>
       </div>
 
-      <div class="ranking-athlete">
-        <strong>
-          ${favoriteStar}${escapeHtml(result.name || "Atleta")}
-        </strong>
-
-        <span>
-          ${escapeHtml(result.club || "Società non indicata")}
-        </span>
-      </div>
-
-      <div class="ranking-total">
-        <strong>
-          ${escapeHtml(totalLabel)}
-        </strong>
-
-        ${
-          result.isEvaluated
-            ? `
-              <span>
-                T ${formatRankingTotal(result.technicalTotal)}
-                ·
-                A ${formatRankingTotal(result.artisticTotal)}
-              </span>
-            `
-            : ""
-        }
-      </div>
+      ${result.isEvaluated ? buildRankingDetails(result) : ""}
     </article>
   `;
 }
 
+function buildRankingDetails(result) {
+  const judgeRows = result.technicalScores
+    .map((technicalScore, index) => {
+      const artisticScore = result.artisticScores[index];
+
+      return `
+        <div class="ranking-judge-row">
+          <span>G${index + 1}</span>
+
+          <strong>
+            T ${formatRankingTotal(technicalScore, 1)}
+          </strong>
+
+          <strong>
+            A ${formatRankingTotal(artisticScore, 1)}
+          </strong>
+        </div>
+      `;
+    })
+    .join("");
+
+  return `
+    <div class="ranking-row-details" aria-hidden="true">
+      <div class="ranking-detail-summary">
+        <div>
+          <span>Tecnico</span>
+          <strong>${formatRankingTotal(result.technicalTotal)}</strong>
+        </div>
+
+        <div>
+          <span>Artistico</span>
+          <strong>${formatRankingTotal(result.artisticTotal)}</strong>
+        </div>
+
+        <div>
+          <span>Penalità</span>
+          <strong>${formatRankingPenalty(result.penalty)}</strong>
+        </div>
+      </div>
+
+      <div class="ranking-judge-list">
+        <span class="ranking-detail-title">Dettaglio giudici</span>
+
+        ${judgeRows}
+      </div>
+
+      <span class="ranking-detail-hint">
+        Tocca di nuovo per chiudere
+      </span>
+    </div>
+  `;
+}
+
+function renderRankingLegend(race) {
+  const legend = document.querySelector("#ranking-screen .ranking-legend");
+
+  if (!legend) {
+    return;
+  }
+
+  const favoriteRanking = getFavoriteRanking(race);
+
+  if (!favoriteRanking) {
+    legend.hidden = true;
+    legend.innerHTML = "";
+    return;
+  }
+
+  legend.hidden = false;
+
+  if (!favoriteRanking.isEvaluated) {
+    legend.innerHTML = `
+      <span>⭐ La nostra atleta — In attesa</span>
+    `;
+    return;
+  }
+
+  legend.innerHTML = `
+    <span>
+      ⭐ La nostra atleta:
+      <strong>
+        ${escapeHtml(formatFullRankingPosition(favoriteRanking.position))}
+        posizione provvisoria
+      </strong>
+    </span>
+  `;
+}
+
+function formatRankingPenalty(penalty) {
+  const numericPenalty = Number(penalty);
+
+  if (!Number.isFinite(numericPenalty) || numericPenalty === 0) {
+    return "—";
+  }
+
+  return `-${formatRankingTotal(numericPenalty)}`;
+}
+
 function renderEmptyRanking() {
+  const legend = document.querySelector("#ranking-screen .ranking-legend");
+
+  if (legend) {
+    legend.hidden = true;
+    legend.innerHTML = "";
+  }
+
   setTextById("ranking-race-name", "Nessuna gara");
 
   setTextById("ranking-race-info", "---");
