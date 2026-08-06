@@ -1282,3 +1282,144 @@ CLASSIFICA LIVE - INSERIMENTO PUNTEGGI
     font-size: 15px;
   }
 }
+
+/*
+==================================================
+ROLLER SCORE DIALOG
+==================================================
+*/
+
+.dialog-open {
+  overflow: hidden;
+}
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 20px;
+
+  background: rgba(3, 7, 18, 0.78);
+
+  opacity: 0;
+  visibility: hidden;
+
+  transition:
+    opacity 180ms ease,
+    visibility 180ms ease;
+}
+
+.dialog-overlay.active {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dialog-window {
+  width: 100%;
+  max-width: 380px;
+
+  padding: 24px;
+
+  border: 1px solid #374151;
+  border-radius: 20px;
+
+  background: #1f2937;
+
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+
+  transform: translateY(18px) scale(0.98);
+
+  transition: transform 180ms ease;
+}
+
+.dialog-overlay.active .dialog-window {
+  transform: translateY(0) scale(1);
+}
+
+.dialog-window h3 {
+  margin-bottom: 12px;
+
+  color: #ffffff;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.dialog-window p {
+  margin-bottom: 24px;
+
+  color: #cbd5e1;
+  font-size: 16px;
+  line-height: 1.5;
+
+  white-space: pre-line;
+}
+
+.dialog-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.dialog-button {
+  min-height: 48px;
+  padding: 12px 16px;
+
+  border-radius: 12px;
+
+  font-size: 16px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.dialog-button-secondary {
+  border: 1px solid #4b5563;
+
+  background: #374151;
+  color: #ffffff;
+}
+
+.dialog-button-primary {
+  border: 1px solid #2563eb;
+
+  background: #2563eb;
+  color: #ffffff;
+}
+
+.dialog-button-success {
+  border: 1px solid #22c55e;
+
+  background: #22c55e;
+  color: #07130b;
+}
+
+.dialog-button-danger {
+  border: 1px solid #ef4444;
+
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.dialog-button:active {
+  transform: scale(0.98);
+}
+
+.dialog-button:focus-visible {
+  outline: 3px solid rgba(96, 165, 250, 0.45);
+  outline-offset: 2px;
+}
+
+@media (max-width: 380px) {
+  .dialog-window {
+    padding: 20px;
+  }
+
+  .dialog-buttons {
+    grid-template-columns: 1fr;
+  }
+}

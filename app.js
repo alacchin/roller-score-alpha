@@ -46,6 +46,8 @@ import { initAthleteSheet } from "./athleteSheet.js";
 
 import { render } from "./renderer.js";
 
+import { initDialog, showConfirmDialog } from "./dialog.js";
+
 import { getRaceStatusInfo } from "./raceUtils.js";
 
 /*
@@ -83,6 +85,7 @@ function initializeApp() {
 
   initNavigation();
   initAthleteSheet();
+  initDialog();
   initAppEvents();
 
   populateAthleteArchive();
@@ -459,12 +462,16 @@ function connectScoreButtons() {
 
   document
     .getElementById("clear-current-score")
-    ?.addEventListener("click", () => {
-      const confirmed = window.confirm(
-        "Eliminare i punteggi salvati per questa atleta?\n\n" +
-          "L’atleta tornerà nello stato “Da fare” " +
-          "e verrà rimossa dalla classifica.",
-      );
+    ?.addEventListener("click", async () => {
+      const confirmed = await showConfirmDialog({
+        title: "Cancella punteggi?",
+        message:
+          "Stai per eliminare tutti i punteggi salvati per questa atleta.\n\n" +
+          "L'atleta tornerà nello stato 'Da fare' e verrà rimossa dalla classifica.",
+        confirmText: "Cancella",
+        cancelText: "Annulla",
+        variant: "danger",
+      });
 
       if (!confirmed) {
         return;
