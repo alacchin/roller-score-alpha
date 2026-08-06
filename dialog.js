@@ -7,6 +7,15 @@ ROLLER SCORE DIALOG
 let activeDialogResolve = null;
 let hideDialogTimer = null;
 
+let isDialogOpen = false;
+let hasDialogHistoryEntry = false;
+
+/*
+==================================================
+APERTURA DIALOG DI CONFERMA
+==================================================
+*/
+
 export function showConfirmDialog({
   title = "Conferma",
   message = "",
@@ -36,26 +45,43 @@ export function showConfirmDialog({
 
   cancelPendingHide();
 
+  /*
+  Se viene aperto un nuovo dialog mentre uno precedente
+  è ancora attivo, il precedente viene annullato.
+  */
+
   if (activeDialogResolve) {
     resolveActiveDialog(false);
   }
 
   titleElement.textContent = title;
+
   messageElement.textContent = message;
 
   confirmButton.textContent = confirmText;
+
   cancelButton.textContent = cancelText;
 
   confirmButton.className = getConfirmButtonClass(variant);
 
   dialog.classList.remove("active");
+
   dialog.hidden = false;
 
   document.body.classList.add("dialog-open");
 
+  isDialogOpen = true;
+
+  addDialogHistoryEntry();
+
   window.requestAnimationFrame(() => {
     window.requestAnimationFrame(() => {
+      if (!isDialogOpen) {
+        return;
+      }
+
       dialog.classList.add("active");
+
       confirmButton.focus();
     });
   });
@@ -64,6 +90,12 @@ export function showConfirmDialog({
     activeDialogResolve = resolve;
   });
 }
+
+/*
+==================================================
+INIZIALIZZAZIONE EVENTI
+==================================================
+*/
 
 export function initDialog() {
   const dialog = document.getElementById("app-dialog");
@@ -91,34 +123,109 @@ export function initDialog() {
   });
 
   window.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && dialog.classList.contains("active")) {
+    if (event.key === "Escape" && isDialogOpen) {
       closeActiveDialog(false);
     }
   });
+
+  /*
+  Su Android il tasto Indietro genera un evento popstate.
+
+  La voce temporanea inserita all'apertura del dialog
+  viene rimossa e il popup viene chiuso come se
+  l'utente avesse premuto "Annulla".
+
+  La schermata sottostante non cambia.
+  */
+
+  window.addEventListener("popstate", () => {
+    if (!isDialogOpen || !hasDialogHistoryEntry) {
+      return;
+    }
+
+    hasDialogHistoryEntry = false;
+
+    closeActiveDialog(false, {
+      removeHistoryEntry: false,
+    });
+  });
 }
 
-function closeActiveDialog(result) {
+/*
+==================================================
+CHIUSURA DIALOG
+==================================================
+*/
+
+function closeActiveDialog(result, { removeHistoryEntry = true } = {}) {
   const dialog = document.getElementById("app-dialog");
-
-  if (!dialog) {
-    resolveActiveDialog(result);
-
-    return;
-  }
 
   cancelPendingHide();
 
-  dialog.classList.remove("active");
+  isDialogOpen = false;
+
+  if (dialog) {
+    dialog.classList.remove("active");
+  }
 
   document.body.classList.remove("dialog-open");
 
+  if (removeHistoryEntry && hasDialogHistoryEntry) {
+    hasDialogHistoryEntry = false;
+
+    window.history.back();
+  }
+
   hideDialogTimer = window.setTimeout(() => {
-    dialog.hidden = true;
+    if (dialog) {
+      dialog.hidden = true;
+    }
+
     hideDialogTimer = null;
   }, 180);
 
   resolveActiveDialog(result);
 }
+
+/*
+==================================================
+CRONOLOGIA TEMPORANEA DEL DIALOG
+==================================================
+*/
+
+function addDialogHistoryEntry() {
+  if (hasDialogHistoryEntry) {
+    return;
+  }
+
+  const currentState =
+    window.history.state && typeof window.history.state === "object"
+      ? window.history.state
+      : {};
+
+  try {
+    window.history.pushState(
+      {
+        ...currentState,
+        rollerScoreDialog: true,
+      },
+      "",
+      window.location.href,
+    );
+
+    hasDialogHistoryEntry = true;
+  } catch (error) {
+    console.warn("Impossibile aggiungere il dialog alla cronologia:", error);
+
+    hasDialogHistoryEntry = false;
+  }
+}
+
+/*
+==================================================
+GESTIONE TIMER
+==================================================
+*/
 
 function cancelPendingHide() {
   if (!hideDialogTimer) {
@@ -126,8 +233,15 @@ function cancelPendingHide() {
   }
 
   window.clearTimeout(hideDialogTimer);
+
   hideDialogTimer = null;
 }
+
+/*
+==================================================
+RISOLUZIONE PROMISE
+==================================================
+*/
 
 function resolveActiveDialog(result) {
   if (!activeDialogResolve) {
@@ -141,10 +255,18 @@ function resolveActiveDialog(result) {
   resolve(Boolean(result));
 }
 
+/*
+==================================================
+STILE PULSANTE CONFERMA
+==================================================
+*/
+
 function getConfirmButtonClass(variant) {
   const buttonClasses = {
     danger: "dialog-button dialog-button-danger",
+
     primary: "dialog-button dialog-button-primary",
+
     success: "dialog-button dialog-button-success",
   };
 
