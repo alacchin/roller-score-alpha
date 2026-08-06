@@ -5,6 +5,7 @@ ROLLER SCORE DIALOG
 */
 
 let activeDialogResolve = null;
+let hideDialogTimer = null;
 
 export function showConfirmDialog({
   title = "Conferma",
@@ -33,27 +34,31 @@ export function showConfirmDialog({
     return Promise.resolve(false);
   }
 
-  closeActiveDialog(false);
+  cancelPendingHide();
+
+  if (activeDialogResolve) {
+    resolveActiveDialog(false);
+  }
 
   titleElement.textContent = title;
-
   messageElement.textContent = message;
 
   confirmButton.textContent = confirmText;
-
   cancelButton.textContent = cancelText;
 
   confirmButton.className = getConfirmButtonClass(variant);
 
+  dialog.classList.remove("active");
   dialog.hidden = false;
 
   document.body.classList.add("dialog-open");
 
-  window.setTimeout(() => {
-    dialog.classList.add("active");
-
-    confirmButton.focus();
-  }, 10);
+  window.requestAnimationFrame(() => {
+    window.requestAnimationFrame(() => {
+      dialog.classList.add("active");
+      confirmButton.focus();
+    });
+  });
 
   return new Promise((resolve) => {
     activeDialogResolve = resolve;
@@ -101,15 +106,27 @@ function closeActiveDialog(result) {
     return;
   }
 
+  cancelPendingHide();
+
   dialog.classList.remove("active");
 
   document.body.classList.remove("dialog-open");
 
-  window.setTimeout(() => {
+  hideDialogTimer = window.setTimeout(() => {
     dialog.hidden = true;
+    hideDialogTimer = null;
   }, 180);
 
   resolveActiveDialog(result);
+}
+
+function cancelPendingHide() {
+  if (!hideDialogTimer) {
+    return;
+  }
+
+  window.clearTimeout(hideDialogTimer);
+  hideDialogTimer = null;
 }
 
 function resolveActiveDialog(result) {
