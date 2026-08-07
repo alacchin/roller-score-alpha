@@ -39,13 +39,15 @@ export async function saveCurrentScore() {
 
   if (technicalScores.includes(null) || artisticScores.includes(null)) {
     await showMessageDialog({
-    title: "Punteggi mancanti",
-    message: "Inserisci tutti i punteggi tecnico e artistico prima di salvare.",
-    buttonText: "OK",
-    variant: "primary"
-});
+      title: "Punteggi mancanti",
+      message:
+        "Inserisci tutti i punteggi tecnico e artistico prima di salvare.",
+      buttonText: "OK",
+      variant: "primary",
+    });
 
-return;
+    return;
+  }
 
   const penalty = readPenalty();
 
