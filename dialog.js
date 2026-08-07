@@ -9,6 +9,7 @@ let hideDialogTimer = null;
 
 let isDialogOpen = false;
 let hasDialogHistoryEntry = false;
+let nativeAlertInstalled = false;
 
 /*
 ==================================================
@@ -171,6 +172,33 @@ export function initDialog() {
       removeHistoryEntry: false,
     });
   });
+
+  installNativeAlertFallback();
+}
+
+/*
+==================================================
+FALLBACK ALERT NATIVO
+==================================================
+*/
+
+function installNativeAlertFallback() {
+  if (nativeAlertInstalled) {
+    return;
+  }
+
+  nativeAlertInstalled = true;
+
+  window.alert = (message) => {
+    console.warn("Roller Score: intercettato alert nativo:", message);
+
+    void showMessageDialog({
+      title: "Roller Score",
+      message: String(message ?? ""),
+      buttonText: "OK",
+      variant: "primary",
+    });
+  };
 }
 
 /*
