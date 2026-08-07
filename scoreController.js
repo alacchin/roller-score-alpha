@@ -14,6 +14,7 @@ import { updateRaceStatus } from "./raceUtils.js";
 import { goToNextParticipant, openRaceDashboard } from "./raceController.js";
 
 import { render } from "./renderer.js";
+import { showMessageDialog } from "./dialog.js";
 
 /*
 ==================================================
@@ -21,7 +22,7 @@ SALVATAGGIO PUNTEGGI
 ==================================================
 */
 
-export function saveCurrentScore() {
+export async function saveCurrentScore() {
   const currentRace = getCurrentRace();
 
   const currentParticipant = getCurrentParticipant();
@@ -37,10 +38,14 @@ export function saveCurrentScore() {
   const artisticScores = readScoreInputs("[data-score-artistic]");
 
   if (technicalScores.includes(null) || artisticScores.includes(null)) {
-    alert("Inserisci tutti i punteggi tecnico e artistico.");
+    await showMessageDialog({
+    title: "Punteggi mancanti",
+    message: "Inserisci tutti i punteggi tecnico e artistico prima di salvare.",
+    buttonText: "OK",
+    variant: "primary"
+});
 
-    return;
-  }
+return;
 
   const penalty = readPenalty();
 

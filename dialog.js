@@ -60,7 +60,12 @@ export function showConfirmDialog({
 
   confirmButton.textContent = confirmText;
 
-  cancelButton.textContent = cancelText;
+  if (cancelText) {
+    cancelButton.hidden = false;
+    cancelButton.textContent = cancelText;
+  } else {
+    cancelButton.hidden = true;
+  }
 
   confirmButton.className = getConfirmButtonClass(variant);
 
@@ -89,6 +94,23 @@ export function showConfirmDialog({
   return new Promise((resolve) => {
     activeDialogResolve = resolve;
   });
+}
+
+export async function showMessageDialog({
+  title = "Messaggio",
+  message = "",
+  buttonText = "OK",
+  variant = "primary",
+} = {}) {
+  await showConfirmDialog({
+    title,
+    message,
+    confirmText: buttonText,
+    cancelText: "",
+    variant,
+  });
+
+  return true;
 }
 
 /*
