@@ -326,11 +326,16 @@ APERTURA MODIFICA GARA
 ==================================================
 */
 
-function openCurrentRaceForEditing() {
+async function openCurrentRaceForEditing() {
   const currentRace = getCurrentRace();
 
   if (!currentRace) {
-    alert("Non è presente una gara da modificare.");
+    await showMessageDialog({
+      title: "Modifica gara",
+      message: "Non è presente una gara da modificare.",
+      buttonText: "OK",
+      variant: "primary",
+    });
 
     return;
   }
@@ -338,7 +343,12 @@ function openCurrentRaceForEditing() {
   const enteredEditMode = enterRaceEditMode(currentRace.id);
 
   if (!enteredEditMode) {
-    alert("Non è stato possibile aprire la gara in modifica.");
+    await showMessageDialog({
+      title: "Modifica gara",
+      message: "Non è stato possibile aprire la gara in modifica.",
+      buttonText: "OK",
+      variant: "primary",
+    });
 
     return;
   }
